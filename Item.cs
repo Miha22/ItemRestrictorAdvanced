@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace ItemRestrictor
+namespace ItemRestrictorAdvanced
 {
     public class ItemBan
     {

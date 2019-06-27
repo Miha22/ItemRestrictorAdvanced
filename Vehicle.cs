@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace ItemRestrictor
+namespace ItemRestrictorAdvanced
 {
     public class Vehicle
     {
@@ -8,8 +8,6 @@ namespace ItemRestrictor
         public ushort Id { get; set; }
         [XmlAttribute("Limit")]
         public ushort Limit { get; set; }
-        public static 
-
         public Vehicle()
         {
 

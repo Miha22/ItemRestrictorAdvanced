@@ -1,11 +1,15 @@
-﻿using Rocket.Core.Plugins;
-using System;
-using Logger = Rocket.Core.Logging.Logger;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using Rocket.Core.Plugins;
 using Rocket.API;
+using Rocket.Core;
 using Rocket.Core.Commands;
 using SDG.Unturned;
+using Logger = Rocket.Core.Logging.Logger;
 
-namespace ItemRestrictor
+namespace ItemRestrictorAdvanced
 {
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
@@ -20,14 +24,13 @@ namespace ItemRestrictor
         {
             if (Configuration.Instance.Enabled)
             {
+                //Start();
                 _instance = this;
-                Logger.Log("ItemRestrictor loaded!", ConsoleColor.Cyan);
+                Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Yellow);
             }
             else
             {
                 UnloadPlugin();
-                Logger.Log("Configuration.Instance.Enabled == false");
-                Logger.Log("ItemRestrictor Unloaded!", ConsoleColor.Cyan);
             }
         }
 
@@ -35,15 +38,46 @@ namespace ItemRestrictor
         [RocketCommandAlias("inv")]
         public void Execute(IRocketPlayer caller, string[] command)
         {
-            foreach (var steamPlayer in Provider.clients)
+            
+        }
+
+        void Start()
+        {
+            foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
-                
+                try
+                {
+                    string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.txt";
+                    string path2 = $@"..\Players\{directory.Name}\{Provider.map}\Inventory.txt";
+                    if (!File.Exists(path))
+                        File.Create(path);
+                    using (StreamWriter sw = new StreamWriter(path2, false, System.Text.Encoding.Default))
+                    {
+                        //string[] playerID = directory.Name.Split('_');
+                        //Console.WriteLine($"player id: {playerID[0]}, char id: {playerID[1]}");
+                        List<Item> playerItems = GetPlayerItems(directory.Name);
+                        foreach (Item item in playerItems)
+                        {
+                            //sw.WriteLine($"ID: {item.id}\n Amount: {item.amount}\n Quality: {item.quality}");
+                            sw.WriteLine($"ID: {item.id}");
+                            sw.WriteLine($"Amount: {item.amount}");
+                            sw.WriteLine($"Quality: {item.quality}");
+                            sw.WriteLine("-------");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"{e.Message}\n{e.TargetSite}");
+                }
             }
         }
 
-        private Item GetPlayerItems(SteamPlayer steamPlayer)
+        private List<Item> GetPlayerItems(string str)//string steamID, string charID
         {
-            Block block = PlayerSavedata.readBlock(steamPlayer.playerID, "/Player/Inventory.dat", (byte)0);
+            List<Item> items = new List<Item>();
+            Block block = ServerSavedata.readBlock("/Players/" + str + "/" + Provider.map + "/Player/Inventory.dat", 0);
+            //PlayerSavedata.readBlock(steamPlayerID, "/Player/Inventory.dat", (byte)0);
             byte num1 = block.readByte();
             for (byte index1 = 0; (int)index1 < (int)PlayerInventory.PAGES - 2; ++index1)
             {
@@ -65,17 +99,17 @@ namespace ItemRestrictor
                     byte newAmount = block.readByte();
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
-                    if ((ItemAsset)Assets.find(EAssetType.ITEM, newID) != null)
-                    {
-                        //this.items[(int)index1].loadItem(x, y, rot, new Item(num3, newAmount, newQuality, newState));
-                        return new Item(newID, newAmount, newQuality, newState);
-                    }
+
+                    Item item = new Item(newID, newAmount, newQuality, newState);
+                    if (items.Contains(item))
+                        continue;
                     else
-                        Logger.Log("Item not found!");
+                        items.Add(item);
+
+                    //this.items[(int)index1].loadItem(x, y, rot, new Item(num3, newAmount, newQuality, newState));
                 }
             }
-
-            return null;
+            return items;
         }
 
         //public void CheckTotalVehicles()
@@ -88,7 +122,7 @@ namespace ItemRestrictor
         //    {
         //        Console.WriteLine($"Owner: {carOwner.Key}, cars: {carOwner.Value}");
         //    }
-            
+
         //}
         //private ushort VehiclesCounter(SteamPlayer steamPlayer)
         //{
@@ -101,16 +135,16 @@ namespace ItemRestrictor
         //    return counter;
         //}
 
-        //public static bool IsPlayersGroup(IRocketPlayer caller, Group group)
-        //{
-        //    string[] groups = R.Permissions.GetGroups(caller, true).Select(g => g.Id).ToArray();
-        //    for (ushort i = 0; i < groups.Length; i++)
-        //    {
-        //        if (group.GroupID.ToLower() == groups[i].ToLower())
-        //            return true;
-        //    }
+        public static bool IsPlayersGroup(IRocketPlayer caller, Group group)
+        {
+            string[] groups = R.Permissions.GetGroups(caller, true).Select(g => g.Id).ToArray();
+            for (ushort i = 0; i < groups.Length; i++)
+            {
+                if (group.GroupID.ToLower() == groups[i].ToLower())
+                    return true;
+            }
 
-        //    return false;
-        //}
+            return false;
+        }
     }
 }

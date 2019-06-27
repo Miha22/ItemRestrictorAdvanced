@@ -2,7 +2,7 @@
 using Rocket.API;
 using System.Collections.Generic;
 
-namespace ItemRestrictor
+namespace ItemRestrictorAdvanced
 {
     public class PluginConfiguration : IRocketPluginConfiguration
     {

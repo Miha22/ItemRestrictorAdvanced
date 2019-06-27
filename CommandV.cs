@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ItemRestrictor
+namespace ItemRestrictorAdvanced
 {
     public class CommandV : IRocketCommand
     {

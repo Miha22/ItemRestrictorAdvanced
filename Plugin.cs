@@ -51,10 +51,9 @@ namespace ItemRestrictorAdvanced
                     string path2 = $@"..\Players\{directory.Name}\{Provider.map}\Inventory.txt";
                     if (!File.Exists(path))
                         File.Create(path);
-                    using (StreamWriter sw = new StreamWriter(path2, false, System.Text.Encoding.Default))
+                    using (StreamWriter sw = new StreamWriter(path, false, System.Text.Encoding.Default))
                     {
                         //string[] playerID = directory.Name.Split('_');
-                        //Console.WriteLine($"player id: {playerID[0]}, char id: {playerID[1]}");
                         List<Item> playerItems = GetPlayerItems(directory.Name);
                         foreach (Item item in playerItems)
                         {

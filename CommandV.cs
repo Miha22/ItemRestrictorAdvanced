@@ -64,7 +64,7 @@ namespace ItemRestrictorAdvanced
             //    }
             //}
 
-            if (ItemRestrictor._instance.Configuration.Instance.Groups.Any(g => ItemRestrictor.IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
+            if (ItemRestrictor._instance.Configuration.Instance.Groups.Any(g => Functions.IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
                                                                     && g.BlackListVehicles.Contains((ushort)nullable)))
             {
                 UnturnedChat.Say((IRocketPlayer)player, U.Translate("command_v_blacklisted"));

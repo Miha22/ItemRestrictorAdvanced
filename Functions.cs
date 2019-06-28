@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using Rocket.API;
 using Rocket.Core;
 using SDG.Unturned;
-using System.Runtime.Serialization.Json;
+using SDG.Framework.IO.Deserialization;
+using SDG.Framework.IO.Serialization;
 
 namespace ItemRestrictorAdvanced
 {
@@ -14,23 +15,30 @@ namespace ItemRestrictorAdvanced
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
-                string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.txt";
+                string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.json";
                 if (!File.Exists(path))
                     File.Create(path);
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
                 List<Item> playerItems = GetPlayerItems(directory.Name);
-                MyItem[] myItems = new MyItem[playerItems.Count];
-                for (int i = 0; i < playerItems.Count; i++)
+                //MyItem[] myItems = new MyItem[playerItems.Count];
+                //for (int i = 0; i < playerItems.Count; i++)
+                //{
+                //    myItems[i] = new MyItem(playerItems[i].id, playerItems[i].state[0], playerItems[i].amount, playerItems[i].quality);
+                //}
+                List<MyItem> myItems = new List<MyItem>();
+                foreach (var item in playerItems)
                 {
-                    myItems[i] = new MyItem(playerItems[i].id, playerItems[i].state[0], playerItems[i].amount, playerItems[i].quality);
+                    myItems.Add(new MyItem(item.id, item.state[0], item.amount, item.quality));
                 }
-                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(MyItem[]));
 
-                using (FileStream fs = new FileStream(path, FileMode.Create))
-                {
-                    jsonFormatter.WriteObject(fs, myItems);
-                }
+                //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(MyItem[]));
+                new JSONSerializer().serialize<List<MyItem>>(myItems, path, false);
+
+                //using (FileStream fs = new FileStream(path, FileMode.Create))
+                //{
+                //    jsonFormatter.WriteObject(fs, myItems);
+                //}
 
                 //using (FileStream fs = new FileStream("people.json", FileMode.OpenOrCreate))
                 //{

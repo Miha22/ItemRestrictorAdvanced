@@ -1,18 +1,13 @@
-﻿using System.Runtime.Serialization;
-
+﻿
 namespace ItemRestrictorAdvanced
 {
-    [DataContract]
     class MyItem
     {
-        [DataMember]
         ushort _id;
-        [DataMember]
         byte _amount;
-        [DataMember]
         byte _x;
-        [DataMember]
         byte _quality;
+
         public MyItem()
         {
 
@@ -24,5 +19,35 @@ namespace ItemRestrictorAdvanced
             _x = x;
             _quality = quality;
         }
+        
+        public ushort ID
+        {
+            get
+            {
+                return _id;
+            }
+        }
+        public byte Amount
+        {
+            get
+            {
+                return _amount;
+            }
+        }
+        public byte x
+        {
+            get
+            {
+                return _x;
+            }
+        }
+        public byte Quality
+        {
+            get
+            {
+                return _quality;
+            }
+        }
+
     }
 }

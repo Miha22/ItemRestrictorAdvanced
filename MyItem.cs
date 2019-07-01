@@ -1,4 +1,6 @@
 ﻿
+using System.Runtime.Serialization;
+
 namespace ItemRestrictorAdvanced
 {
     class MyItem
@@ -19,7 +21,6 @@ namespace ItemRestrictorAdvanced
             _x = x;
             _quality = quality;
         }
-        
         public ushort ID
         {
             get

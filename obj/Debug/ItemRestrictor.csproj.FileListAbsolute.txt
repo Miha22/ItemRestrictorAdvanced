@@ -44,3 +44,4 @@ E:\Users\Deniel\Documents\GitHub\ItemRestrictorAdvanced\bin\Debug\ItemRestrictor
 E:\Users\Deniel\Documents\GitHub\ItemRestrictorAdvanced\bin\Debug\ItemRestrictorAdvanced.pdb
 E:\Users\Deniel\Documents\GitHub\ItemRestrictorAdvanced\obj\Debug\ItemRestrictorAdvanced.dll
 E:\Users\Deniel\Documents\GitHub\ItemRestrictorAdvanced\obj\Debug\ItemRestrictorAdvanced.pdb
+E:\Users\Deniel\Documents\GitHub\ItemRestrictorAdvanced\bin\Debug\System.IO.FileSystem.Watcher.dll

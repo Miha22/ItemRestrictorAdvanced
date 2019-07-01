@@ -4,38 +4,52 @@ using System.Collections.Generic;
 using Rocket.API;
 using Rocket.Core;
 using SDG.Unturned;
-using SDG.Framework.IO.Deserialization;
 using SDG.Framework.IO.Serialization;
+using Newtonsoft.Json;
 
 namespace ItemRestrictorAdvanced
 {
     class Functions
     {
-        public void Start()
+        //private string PlayerName(string playerID)
+        //{
+        //    foreach (var steamplayer in Provider.clients)
+        //    {
+        //        if (playerID == steamplayer.playerID.ToString())
+        //            return steamplayer.playerID.playerName;
+        //    }
+
+        //    return "";
+        //}
+        public void ReadInventoryTo(string path)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
-                string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.json";
-                if (!File.Exists(path))
-                    File.Create(path);
-                if (directory.Attributes == FileAttributes.ReadOnly)
-                    directory.Attributes &= ~FileAttributes.ReadOnly;
+                //string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.json";
+                //string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{directory.Name.Split('_')[0]}.json";
+                //string newPath = path + $@"\{directory.Name.Split('_')[0]}_{PlayerName(directory.Name.Split('_')[0])}.json";
+                string newPath = path + $@"\{directory.Name.Split('_')[0]}.json";
+                //if (!File.Exists(newPath))
+                //    File.Create(newPath);
+                FileInfo file = new FileInfo(newPath);
+                if(file.Attributes == FileAttributes.ReadOnly)
+                    file.Attributes &= ~FileAttributes.ReadOnly;
                 List<Item> playerItems = GetPlayerItems(directory.Name);
-                //MyItem[] myItems = new MyItem[playerItems.Count];
-                //for (int i = 0; i < playerItems.Count; i++)
-                //{
-                //    myItems[i] = new MyItem(playerItems[i].id, playerItems[i].state[0], playerItems[i].amount, playerItems[i].quality);
-                //}
                 List<MyItem> myItems = new List<MyItem>();
                 foreach (var item in playerItems)
                 {
                     myItems.Add(new MyItem(item.id, item.state[0], item.amount, item.quality));
                 }
-
-                //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(MyItem[]));
-                new JSONSerializer().serialize<List<MyItem>>(myItems, path, false);
-
-                //using (FileStream fs = new FileStream(path, FileMode.Create))
+                //new JSONSerializer().serialize<List<MyItem>>(myItems, newPath, false);
+                using (StreamWriter streamWriter = new StreamWriter(newPath))
+                {
+                    JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
+                    JsonSerializer jsonSerializer = new JsonSerializer();
+                    jsonSerializer.Serialize(jsonWriter, (object)myItems);
+                    jsonWriter.Flush();
+                }
+                //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<MyItem>));
+                //using (FileStream fs = new FileStream(newPath, FileMode.OpenOrCreate))
                 //{
                 //    jsonFormatter.WriteObject(fs, myItems);
                 //}

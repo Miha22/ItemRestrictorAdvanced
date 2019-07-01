@@ -21,11 +21,15 @@ namespace ItemRestrictorAdvanced
 
         //    return "";
         //}
-        public void WriteInventory()
+        public static void OnInventoryAdded()
         {
 
         }
-        public void ReadInventoryTo(string path)
+        public static void writeBlock(string path)
+        {
+
+        }
+        public void LoadInventoryTo(string path)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
@@ -160,5 +164,6 @@ namespace ItemRestrictorAdvanced
 
             return false;
         }
+        
     }
 }

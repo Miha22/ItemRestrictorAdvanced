@@ -50,15 +50,54 @@ namespace ItemRestrictorAdvanced
         }
 
         // Define the event handlers.
-        private static void OnChanged(object source, FileSystemEventArgs e) =>
-            // Specify what is done when a file is changed, created, or deleted.
-            Console.WriteLine($"File: {e.FullPath} {e.ChangeType}");
-            // write block
-            
+        //private static void OnChanged(object source, FileSystemEventArgs e) =>
+         //Specify what is done when a file is changed, created, or deleted.
+        //Console.WriteLine($"File name: {e.Name}, obj: {source.ToString()}");
+        // write block
+
 
         //private static void OnRenamed(object source, RenamedEventArgs e) =>
-            // Specify what is done when a file is renamed.
-            //Console.WriteLine($"File: {e.OldFullPath} renamed to {e.FullPath}");
+        // Specify what is done when a file is renamed.
+        //Console.WriteLine($"File: {e.OldFullPath} renamed to {e.FullPath}");
+
+        //File: E:\Program Files (x86)\steam\steamapps\common\Unturned_Server\Servers\server1\Rocket\Plugins\ItemRestrictorAdvanced\Inventories\76561198112559333.json Changed
+        private static void OnChanged(object source, FileSystemEventArgs e)
+        {
+            string playerSteamID = GetSteamID(e.Name);
+            if (IsPlayerOnline(playerSteamID))
+            {
+               //load inventory
+            }
+            else
+            {
+                Functions.writeBlock($@"..\Players\");
+            }
+        }
+        //private static string GetSteamID(string line)
+        //{
+        //    int index = 0;
+        //    for (int i = line.Length-5, j = 0; j <= 17; j++, --i)
+        //    {
+        //        index = i;
+        //    }
+        //    Console.WriteLine($"Steam id: {line.Substring(index, 16)}");
+        //    string steamId = line.Substring(index, 17);
+        //    int steamId32;
+        //    if (!Int32.TryParse(steamId, out steamId32))
+        //        throw new InvalidCastException($"Unsuccessfull try to get playerSteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+
+        //    return steamId;
+        //}
+        private static bool IsPlayerOnline(string steamID)
+        {
+            foreach (var steamPlayer in SDG.Unturned.Provider.clients)
+            {
+                if (steamID == steamPlayer.playerID.ToString())
+                    return true;
+            }
+
+            return false;
+        }
     }
 
 }

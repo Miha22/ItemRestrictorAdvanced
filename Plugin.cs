@@ -9,7 +9,7 @@ namespace ItemRestrictorAdvanced
 {
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
-        static string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories";
+        static string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
         internal static ItemRestrictor _instance;
 
         public ItemRestrictor()
@@ -30,7 +30,7 @@ namespace ItemRestrictorAdvanced
 
                 try
                 {
-                    new Functions().ReadInventoryTo(path);
+                    new Functions().LoadInventoryTo(path);
                     WatcherAsync();
                     Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Yellow);
                 }

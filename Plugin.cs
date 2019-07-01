@@ -84,6 +84,5 @@ namespace ItemRestrictorAdvanced
         //    }
         //    return counter;
         //}
-
     }
 }

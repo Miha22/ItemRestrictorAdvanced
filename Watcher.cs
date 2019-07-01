@@ -88,6 +88,16 @@ namespace ItemRestrictorAdvanced
 
         //    return steamId;
         //}
+        private static (string, int) GetSteamID(string line)
+        {
+            string[] str = line.Split('\\');
+            string steamId = str[str.Length-1];
+        
+            if (!Int32.TryParse(steamId, out steamId32))
+                throw new InvalidCastException($"Unsuccessfull try to get playerSteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+
+            return steamId;
+        }
         private static bool IsPlayerOnline(string steamID)
         {
             foreach (var steamPlayer in SDG.Unturned.Provider.clients)

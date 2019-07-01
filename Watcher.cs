@@ -44,8 +44,8 @@ namespace ItemRestrictorAdvanced
                 watcher.EnableRaisingEvents = true;
 
                 // Wait for the user to quit the program.
-                Console.WriteLine("Press 'q' to quit the sample.");
-                while (Console.ReadLine() != "q");
+                //Console.WriteLine("Type: '-watcher' or '--w' to disable watcher.");
+                while (Console.ReadLine() != "--w") ;
             }
         }
 

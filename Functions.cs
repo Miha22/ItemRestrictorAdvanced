@@ -21,6 +21,10 @@ namespace ItemRestrictorAdvanced
 
         //    return "";
         //}
+        public void WriteInventory()
+        {
+
+        }
         public void ReadInventoryTo(string path)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())

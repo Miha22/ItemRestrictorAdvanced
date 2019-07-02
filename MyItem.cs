@@ -18,6 +18,10 @@ namespace ItemRestrictorAdvanced
         public byte Quality { get; }
         [JsonProperty]
         public byte[] State { get; }
+        //[JsonProperty]
+        //public Dictionary<byte, PageSize> Page { get; }
+        //[JsonProperty]
+        //public (byte, PageSize) Page { get; }
         [JsonProperty]
         public byte Page { get; }
         [JsonProperty]
@@ -37,6 +41,8 @@ namespace ItemRestrictorAdvanced
             Quality = quality;
             State = state;
             Count = 1;
+            Width = width;
+            Height = height;
             Page = page;
         }
 

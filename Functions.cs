@@ -87,6 +87,7 @@ namespace ItemRestrictorAdvanced
                 //this.items[(int)index1].loadSize(block.readByte(), block.readByte());
                 byte width = block.readByte();
                 byte height = block.readByte();
+                System.Console.WriteLine($"page: {index1} wid: {width}, hei: {height}");
                 byte itemCount = block.readByte();
                 for (byte index2 = 0; index2 < itemCount; ++index2)
                 {

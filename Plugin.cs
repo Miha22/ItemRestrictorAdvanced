@@ -36,9 +36,7 @@ namespace ItemRestrictorAdvanced
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("EXCEPTION MESSAGE {0}", e.Message);
-                    Console.WriteLine("EXCEPTION TargetSite {0}", e.TargetSite);
-                    Console.WriteLine("EXCEPTION StackTrace {0}", e.StackTrace);
+                    Logger.LogException(e, $"EXCEPTION MESSAGE: {e.Message} \n EXCEPTION TargetSite: {e.TargetSite} \n EXCEPTION StackTrace {e.StackTrace}");
                 }
                 //create json files for each player from inventory.dat..
             }
@@ -51,7 +49,7 @@ namespace ItemRestrictorAdvanced
         static async void WatcherAsync()
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
-            await Task.Run(()=>Watcher.Run(path));                            // выполняется асинхронно
+            await Task.Run(()=>new Watcher().Run(path));                            // выполняется асинхронно
             //Console.WriteLine("Конец метода FactorialAsync");  // выполняется синхронно
         }
 

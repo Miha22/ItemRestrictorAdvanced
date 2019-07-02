@@ -7,7 +7,7 @@ namespace ItemRestrictorAdvanced
     public class Watcher
     {
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public static void Run(string watchPath)
+        public void Run(string watchPath)
         {
             //string[] args = Environment.GetCommandLineArgs();
 
@@ -61,16 +61,16 @@ namespace ItemRestrictorAdvanced
         //Console.WriteLine($"File: {e.OldFullPath} renamed to {e.FullPath}");
 
         //File: E:\Program Files (x86)\steam\steamapps\common\Unturned_Server\Servers\server1\Rocket\Plugins\ItemRestrictorAdvanced\Inventories\76561198112559333.json Changed
-        private static void OnChanged(object source, FileSystemEventArgs e)
+        private void OnChanged(object source, FileSystemEventArgs e)
         {
-            string playerSteamID = GetSteamID(e.Name);
-            if (IsPlayerOnline(playerSteamID))
+            var(playerSteamID, map) = Functions.GetSteamID(e.Name);
+            if (Functions.IsPlayerOnline(playerSteamID))
             {
                //load inventory
             }
             else
             {
-                Functions.writeBlock($@"..\Players\");
+                Functions.writeBlock($@"\Players\{Functions.PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
             }
         }
         //private static string GetSteamID(string line)
@@ -88,26 +88,6 @@ namespace ItemRestrictorAdvanced
 
         //    return steamId;
         //}
-        private static (string, int) GetSteamID(string line)
-        {
-            string[] str = line.Split('\\');
-            string steamId = str[str.Length-1];
-        
-            if (!Int32.TryParse(steamId, out steamId32))
-                throw new InvalidCastException($"Unsuccessfull try to get playerSteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
-
-            return steamId;
-        }
-        private static bool IsPlayerOnline(string steamID)
-        {
-            foreach (var steamPlayer in SDG.Unturned.Provider.clients)
-            {
-                if (steamID == steamPlayer.playerID.ToString())
-                    return true;
-            }
-
-            return false;
-        }
     }
 
 }

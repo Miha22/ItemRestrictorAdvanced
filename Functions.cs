@@ -25,43 +25,57 @@ namespace ItemRestrictorAdvanced
         {
 
         }
-        internal static void writeBlock(string writepath, string readpath)
+        private static byte ItemsCountOnPage(byte page, List<MyItem> myItems)
         {
-            MyItem[] myItems;
-            using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
+            byte counter = 0;
+            foreach (var item in myItems)
             {
-                JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
-                //JsonSerializer jsonSerializer = new JsonSerializer();
-                myItems = new JsonSerializer().Deserialize<MyItem[]>(reader);
+                if (item.Page == page)
+                    counter++;
             }
-            Block block = new Block();
-            block.writeByte(PlayerInventory.SAVEDATA_VERSION);
-            for (byte index1 = 0; index1 < PlayerInventory.PAGES - 2; ++index1)
-            {
-                byte num1;
-                byte num2;
-                byte num3;
-                num1 = myItems[index1].Width;
-                num2 = myItems[index1].Height;
-                num3 = (byte)myItems[index1].items.Count;
-                block.writeByte(num1);
-                block.writeByte(num2);
-                block.writeByte(num3);
-                for (byte index2 = 0; index2 < num3; ++index2)
-                {
-                    ItemJar itemJar = myItems[index1].items[index2];
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
-                    block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
-                    block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
-                }
-            }
-            //PlayerSavedata.writeBlock(this.channel.owner.playerID, "/Player/Inventory.dat", block);
-            ServerSavedata.writeBlock(writepath, block);
+
+            return counter;
         }
+        //internal static void writeBlock(string writepath, string readpath)
+        //{
+        //    //MyItem[] myItems;
+        //    List<MyItem> myItems;
+        //    using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
+        //    {
+        //        JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
+        //        //JsonSerializer jsonSerializer = new JsonSerializer();
+        //        myItems = new JsonSerializer().Deserialize<List<MyItem>>(reader);
+        //    }
+        //    Block block = new Block();
+        //    block.writeByte(PlayerInventory.SAVEDATA_VERSION);
+        //    for (byte index1 = 0; index1 < PlayerInventory.PAGES - 2; ++index1)
+        //    {
+        //        byte num1;
+        //        byte num2;
+        //        byte num3;
+        //        num1 = myItems[index1].Width;
+        //        num2 = myItems[index1].Height;
+        //        //num3 = (byte)myItems[index1].items.Count; //items on page
+        //        num3 = ItemsCountOnPage(index1, myItems);
+        //        block.writeByte(num1);
+        //        block.writeByte(num2);
+        //        block.writeByte(num3);
+        //        for (byte index2 = 0; index2 < num3; ++index2)
+        //        {
+        //            //ItemJar itemJar = myItems[index1].items[index2];
+        //            ItemJar itemJar = new ItemJar();
+        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
+        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
+        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
+        //            block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
+        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
+        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
+        //            block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
+        //        }
+        //    }
+        //    //PlayerSavedata.writeBlock(this.channel.owner.playerID, "/Player/Inventory.dat", block);
+        //    ServerSavedata.writeBlock(writepath, block);
+        //}
         private List<MyItem> GetPlayerItems(string str)//look up a call of GetPlayerItems for "str" for more info
         {
             List<MyItem> myItems = new List<MyItem>();
@@ -91,7 +105,7 @@ namespace ItemRestrictorAdvanced
                     //block.readByteArray();
                     //byte[] newState = new byte[1] { 1 };
 
-                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState);
+                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState, width, height, index1);
                     //myItems.Add(new MyItem(width, height, x, y, rot, newID, newAmount, newQuality, newState));
                     if (HasItem(myItem, myItems))
                         continue;
@@ -204,7 +218,7 @@ namespace ItemRestrictorAdvanced
         {
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i].ID == item.ID && items[i].Quality == item.Quality && items[i].Amount == item.Amount)
+                if (items[i].ID == item.ID && items[i].Quality == item.Quality && items[i].x == item.x)
                 {
                     items[i].Count++;
                     return true;

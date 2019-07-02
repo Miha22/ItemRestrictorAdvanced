@@ -48,6 +48,8 @@ namespace ItemRestrictorAdvanced
                 //Console.WriteLine("Type: '-watcher' or '--w' to disable watcher.");
                 while (!token.IsCancellationRequested) ;
             }
+            //System.Diagnostics.Process.Start($@"E:\Users\M22\Documents\GitHub\tx.txt");
+            //"Thread has been stopped!"
         }
 
         // Define the event handlers.
@@ -71,7 +73,7 @@ namespace ItemRestrictorAdvanced
             }
             else
             {
-                Functions.writeBlock($@"\Players\{Functions.PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
+                //Functions.writeBlock($@"\Players\{Functions.PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
             }
         }
         //private static string GetSteamID(string line)

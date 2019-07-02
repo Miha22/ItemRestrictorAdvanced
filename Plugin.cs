@@ -65,8 +65,6 @@ namespace ItemRestrictorAdvanced
         public static void OnServerShutdown()
         {
             cts.Cancel();
-            System.Diagnostics.Process.Start($@"E:\Users\Deniel\Documents\GitHub\tx.txt");
-            Console.WriteLine("Thread has been stopped!");
             Provider.onServerShutdown -= OnServerShutdown;
         }
 

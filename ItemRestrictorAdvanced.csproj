@@ -40,6 +40,7 @@
     <Compile Include="Group.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="MyItem.cs" />
+    <Compile Include="MyItemsPage.cs" />
     <Compile Include="PluginConfiguration.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

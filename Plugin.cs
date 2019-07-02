@@ -4,6 +4,9 @@ using Rocket.API;
 using Logger = Rocket.Core.Logging.Logger;
 using System.IO;
 using System.Threading.Tasks;
+using Rocket.Core.Commands;
+using System.Collections.Generic;
+using SDG.Unturned;
 
 namespace ItemRestrictorAdvanced
 {
@@ -11,14 +14,16 @@ namespace ItemRestrictorAdvanced
     {
         static string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
         internal static ItemRestrictor _instance;
+        public static System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+        System.Threading.CancellationToken token = cts.Token;
 
         public ItemRestrictor()
         {
-            
+            Provider.onServerShutdown += OnServerShutdown;
         }
 
         protected override void Load()
-        {   
+        {
             if (Configuration.Instance.Enabled)
             {
                 _instance = this;
@@ -31,34 +36,42 @@ namespace ItemRestrictorAdvanced
                 try
                 {
                     new Functions().LoadInventoryTo(path);
-                    WatcherAsync();
+                    WatcherAsync(token);
                     Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Yellow);
                 }
                 catch (Exception e)
                 {
+                    cts.Cancel();
                     Logger.LogException(e, $"EXCEPTION MESSAGE: {e.Message} \n EXCEPTION TargetSite: {e.TargetSite} \n EXCEPTION StackTrace {e.StackTrace}");
+                    Console.WriteLine();
                 }
                 //create json files for each player from inventory.dat..
             }
             else
             {
+                cts.Cancel();
                 Logger.Log("Plugin is turned off in Configuration, unloading...", ConsoleColor.Cyan);
                 UnloadPlugin();
             }
         }
-        static async void WatcherAsync()
+        static async void WatcherAsync(System.Threading.CancellationToken token)
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
-            await Task.Run(()=>new Watcher().Run(path));                            // выполняется асинхронно
+            if (token.IsCancellationRequested)
+                return;
+            await Task.Run(()=>new Watcher().Run(path, token));                            // выполняется асинхронно
             //Console.WriteLine("Конец метода FactorialAsync");  // выполняется синхронно
         }
+        public static void OnServerShutdown()
+        {
+            cts.Cancel();
+            System.Diagnostics.Process.Start($@"E:\Users\Deniel\Documents\GitHub\tx.txt");
+            Console.WriteLine("Thread has been stopped!");
+            Provider.onServerShutdown -= OnServerShutdown;
+        }
 
-        //[RocketCommand("inventorycheck", "", "", AllowedCaller.Player)]
-        //[RocketCommandAlias("inv")]
-        //public void Execute(IRocketPlayer caller, string[] command)
-        //{
-
-        //}
+        //[RocketCommand("ss", "", "", AllowedCaller.Console)]
+        //[RocketCommandAlias("ss")]
 
         //public void CheckTotalVehicles()
         //{

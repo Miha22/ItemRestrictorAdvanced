@@ -62,9 +62,8 @@ namespace ItemRestrictorAdvanced
             //PlayerSavedata.writeBlock(this.channel.owner.playerID, "/Player/Inventory.dat", block);
             ServerSavedata.writeBlock(writepath, block);
         }
-        private (List<Item>, List<MyItem>) GetPlayerItems(string str)//look up a call of GetPlayerItems for "str" for more info
+        private List<MyItem> GetPlayerItems(string str)//look up a call of GetPlayerItems for "str" for more info
         {
-            List<Item> items = new List<Item>();
             List<MyItem> myItems = new List<MyItem>();
             Block block = ServerSavedata.readBlock("/Players/" + str + "/" + Provider.map + "/Player/Inventory.dat", 0);
             //PlayerSavedata.readBlock(steamPlayerID, "/Player/Inventory.dat", (byte)0);
@@ -72,7 +71,6 @@ namespace ItemRestrictorAdvanced
             for (byte index1 = 0; index1 < PlayerInventory.PAGES - 2; ++index1)
             {
                 //this.items[(int)index1].loadSize(block.readByte(), block.readByte());
-
                 byte width = block.readByte();
                 byte height = block.readByte();
                 byte itemCount = block.readByte();
@@ -83,7 +81,7 @@ namespace ItemRestrictorAdvanced
                     byte y = block.readByte();
                     //block.readByte();
                     byte rot = 0;
-                    if (num1 > 4)
+                    //if (num1 > 4)
                         rot = block.readByte();
                     //block.readByte();
                     ushort newID = block.readUInt16();
@@ -93,47 +91,16 @@ namespace ItemRestrictorAdvanced
                     //block.readByteArray();
                     //byte[] newState = new byte[1] { 1 };
 
-                    Item item = new Item(newID, newAmount, newQuality, newState);
-                    myItems.Add(new MyItem(width, height, x, y, rot, newID, newAmount, newQuality, newState));
-                    if (HasItem(item, items))
+                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState);
+                    //myItems.Add(new MyItem(width, height, x, y, rot, newID, newAmount, newQuality, newState));
+                    if (HasItem(myItem, myItems))
                         continue;
                     else
-                        items.Add(item);
+                        myItems.Add(myItem);
                     //this.items[(int)index1].loadItem(x, y, rot, new Item(num3, newAmount, newQuality, newState));
                 }
             }
-            return (items, myItems);
-        }
-        internal static (string, string) GetSteamID(string line)
-        {
-            string[] str = line.Split('\\');
-            string steamId = str[str.Length - 1];
-            string map = str[str.Length - 2];
-
-            int steamId32;
-            if (!int.TryParse(steamId, out steamId32))
-                throw new System.InvalidCastException($"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
-
-            return (steamId, map);
-        }
-        internal static bool IsPlayerOnline(string steamID)
-        {
-            foreach (var steamPlayer in SDG.Unturned.Provider.clients)
-            {
-                if (steamID == steamPlayer.playerID.ToString())
-                    return true;
-            }
-
-            return false;
-        }
-        internal static string PlayerInPlayersFolder(string steamId)
-        {
-            foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
-            {
-                if (directory.Name.Split('\\')[0] == steamId)
-                    return directory.Name;
-            }
-            throw new System.IO.DirectoryNotFoundException($@"Failed to find: {steamId} in ../{Provider.serverName}/Players  folder!");
+            return myItems;
         }
         internal void LoadInventoryTo(string path)
         {
@@ -148,13 +115,13 @@ namespace ItemRestrictorAdvanced
                 FileInfo file = new FileInfo(newPath);
                 if(file.Attributes == FileAttributes.ReadOnly)
                     file.Attributes &= ~FileAttributes.ReadOnly;
-                var(items, myItems) = GetPlayerItems(directory.Name);
+                List<MyItem> myItems = GetPlayerItems(directory.Name);
                 //new JSONSerializer().serialize<List<MyItem>>(myItems, newPath, false);
                 using (StreamWriter streamWriter = new StreamWriter(newPath))//SDG.Framework.IO.Serialization
                 {
                     JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
                     //JsonSerializer jsonSerializer = new JsonSerializer();
-                    new JsonSerializer().Serialize(jsonWriter, (object)items);
+                    new JsonSerializer().Serialize(jsonWriter, (object)myItems);
                     jsonWriter.Flush();
                 }
                 //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<MyItem>));
@@ -202,13 +169,44 @@ namespace ItemRestrictorAdvanced
                 //}
             }
         }
-        private bool HasItem(Item item, List<Item> items)
+        internal static (string, string) GetSteamID(string line)
+        {
+            string[] str = line.Split('\\');
+            string steamId = str[str.Length - 1];
+            string map = str[str.Length - 2];
+
+            int steamId32;
+            if (!int.TryParse(steamId, out steamId32))
+                throw new System.InvalidCastException($"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+
+            return (steamId, map);
+        }
+        internal static bool IsPlayerOnline(string steamID)
+        {
+            foreach (var steamPlayer in SDG.Unturned.Provider.clients)
+            {
+                if (steamID == steamPlayer.playerID.ToString())
+                    return true;
+            }
+
+            return false;
+        }
+        internal static string PlayerInPlayersFolder(string steamId)
+        {
+            foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
+            {
+                if (directory.Name.Split('\\')[0] == steamId)
+                    return directory.Name;
+            }
+            throw new System.IO.DirectoryNotFoundException($@"Failed to find: {steamId} in ../{Provider.serverName}/Players  folder!");
+        }
+        private bool HasItem(MyItem item, List<MyItem> items)
         {
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i].id == item.id && items[i].quality == item.quality && items[i].amount == item.amount)
+                if (items[i].ID == item.ID && items[i].Quality == item.Quality && items[i].Amount == item.Amount)
                 {
-                    items[i].state[0]++;
+                    items[i].Count++;
                     return true;
                 }
             }

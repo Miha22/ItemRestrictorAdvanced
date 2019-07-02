@@ -1,13 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Security.Permissions;
+using System.Threading;
 
 namespace ItemRestrictorAdvanced
 {
     public class Watcher
     {
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public void Run(string watchPath)
+        public void Run(string watchPath, CancellationToken token)
         {
             //string[] args = Environment.GetCommandLineArgs();
 
@@ -45,14 +46,14 @@ namespace ItemRestrictorAdvanced
 
                 // Wait for the user to quit the program.
                 //Console.WriteLine("Type: '-watcher' or '--w' to disable watcher.");
-                while (Console.ReadLine() != "--w") ;
+                while (!token.IsCancellationRequested) ;
             }
         }
 
         // Define the event handlers.
+        //  Specify what is done when a file is changed, created, or deleted.
         //private static void OnChanged(object source, FileSystemEventArgs e) =>
-         //Specify what is done when a file is changed, created, or deleted.
-        //Console.WriteLine($"File name: {e.Name}, obj: {source.ToString()}");
+        //    Console.WriteLine($"File name: {e.Name}, obj: {e.FullPath}");
         // write block
 
 
@@ -63,10 +64,10 @@ namespace ItemRestrictorAdvanced
         //File: E:\Program Files (x86)\steam\steamapps\common\Unturned_Server\Servers\server1\Rocket\Plugins\ItemRestrictorAdvanced\Inventories\76561198112559333.json Changed
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            var(playerSteamID, map) = Functions.GetSteamID(e.Name);
+            var (playerSteamID, map) = Functions.GetSteamID(e.Name);
             if (Functions.IsPlayerOnline(playerSteamID))
             {
-               //load inventory
+                //load inventory
             }
             else
             {

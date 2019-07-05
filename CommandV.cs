@@ -1,5 +1,6 @@
 ﻿using Rocket.API;
 using Rocket.API.Extensions;
+using Rocket.Core;
 using Rocket.Core.Logging;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
@@ -19,6 +20,18 @@ namespace ItemRestrictorAdvanced
         public string Syntax => "<id> [amount]";
         public List<string> Aliases => new List<string>() { "vehicle" };
         public List<string> Permissions => new List<string>() { "rocket.vehicle", "rocket.v" };
+
+        private bool IsPlayersGroup(IRocketPlayer caller, Group group)
+        {
+            string[] groups = R.Permissions.GetGroups(caller, true).Select(g => g.Id).ToArray();
+            for (ushort i = 0; i < groups.Length; i++)
+            {
+                if (group.GroupID.ToLower() == groups[i].ToLower())
+                    return true;
+            }
+
+            return false;
+        }
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
@@ -64,7 +77,7 @@ namespace ItemRestrictorAdvanced
             //    }
             //}
 
-            if (ItemRestrictor._instance.Configuration.Instance.Groups.Any(g => Functions.IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
+            if (ItemRestrictor._instance.Configuration.Instance.Groups.Any(g => new Functions().IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
                                                                     && g.BlackListVehicles.Contains((ushort)nullable)))
             {
                 UnturnedChat.Say((IRocketPlayer)player, U.Translate("command_v_blacklisted"));

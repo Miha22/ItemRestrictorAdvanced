@@ -19,6 +19,18 @@ namespace ItemRestrictorAdvanced
         public List<string> Aliases => new List<string>() { "item" };
         public List<string> Permissions => new List<string>() {"rocket.item","rocket.i"};
 
+        private bool IsPlayersGroup(IRocketPlayer caller, Group group)
+        {
+            string[] groups = Rocket.Core.R.Permissions.GetGroups(caller, true).Select(g => g.Id).ToArray();
+            for (ushort i = 0; i < groups.Length; i++)
+            {
+                if (group.GroupID.ToLower() == groups[i].ToLower())
+                    return true;
+            }
+
+            return false;
+        }
+
         public void Execute(IRocketPlayer caller, string[] command)
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
@@ -63,7 +75,7 @@ namespace ItemRestrictorAdvanced
             //    }
             //}
 
-            if (ItemRestrictor._instance.Configuration.Instance.Groups.Any(g => Functions.IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
+            if (ItemRestrictor._instance.Configuration.Instance.Groups.Any(g => IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
                                                                     && g.BlackListItems.Contains(result1)))
             {
                 UnturnedChat.Say((IRocketPlayer)player, U.Translate("command_i_blacklisted"));

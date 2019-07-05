@@ -77,14 +77,14 @@ namespace ItemRestrictorAdvanced
         //    //PlayerSavedata.writeBlock(this.channel.owner.playerID, "/Player/Inventory.dat", block);
         //    ServerSavedata.writeBlock(writepath, block);
         //}
-        private static void GetSize(string path, out byte width, out byte height)
+        private void GetSize(string path, out byte width, out byte height)
         {
             Block block = ServerSavedata.readBlock(path, 0);
             block.readByte();
             width = block.readByte();
             height = block.readByte();
         }
-        public static bool TryAddItems(string writepath, string readpath, out List<MyItem> notAddedItems)
+        public bool TryAddItems(string writepath, string readpath, out List<MyItem> notAddedItems)
         {
             Block block = new Block();
             block.writeByte(PlayerInventory.SAVEDATA_VERSION);
@@ -97,8 +97,49 @@ namespace ItemRestrictorAdvanced
             for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)
             {
                 byte width, height, itemsCount;
-                GetSize(writepath, out width, out height);//clearing items for each page
+                GetSize(writepath, out width, out height);
+                List<MyItem> selectedItems = SelectItems(width, height, myItems);
             }
+        }
+        private List<MyItem> OrderByLarge(List<MyItem> myItems)
+        {
+            List<MyItem> selectedItems = new List<MyItem>();
+            while(myItems.Count != 0)
+            {
+                MyItem largest = myItems[0];
+                for (byte i = 1; i < myItems.Count; i++)
+                {
+                    if ((largest.Size_x * largest.Size_y) <= (myItems[i].Size_x * myItems[i].Size_y))
+                    {
+                        largest = myItems[i];
+                        myItems.RemoveAt(i);
+                    }   
+                }
+                selectedItems.Add(largest);
+            }
+
+            return selectedItems;
+        }
+        private List<MyItem> SelectItems(byte width, byte height, List<MyItem> myItems)
+        {
+            List<MyItem> selectedItems = new List<MyItem>();
+            bool[,] page = FillPage(width, height);
+
+
+            return selectedItems;
+        }
+        private bool[,] FillPage(byte width, byte height)
+        {
+            bool[,] page = new bool[width, height];
+            for (byte i = 0; i < width; i++)
+            {
+                for (byte j = 0; j < height; j++)
+                {
+                    page[i, j] = true;
+                }
+            }
+
+            return page;
         }
         private List<MyItem> GetPlayerItems(string steamIdstr)//look up a call of GetPlayerItems for "str" for more info
         {
@@ -139,7 +180,7 @@ namespace ItemRestrictorAdvanced
             }
             return myItems;
         }
-        internal void LoadInventoryTo(string path)
+        public void LoadInventoryTo(string path)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
@@ -205,19 +246,18 @@ namespace ItemRestrictorAdvanced
                 //}
             }
         }
-        internal static (string, string) GetSteamID(string line)
+        private (string, string) GetSteamID(string line)
         {
             string[] str = line.Split('\\');
             string steamId = str[str.Length - 1];
             string map = str[str.Length - 2];
 
-            int steamId32;
-            if (!int.TryParse(steamId, out steamId32))
+            if (!int.TryParse(steamId, out int steamId32))
                 throw new System.InvalidCastException($"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
 
             return (steamId, map);
         }
-        internal static bool IsPlayerOnline(string steamID)
+        private bool IsPlayerOnline(string steamID)
         {
             foreach (var steamPlayer in SDG.Unturned.Provider.clients)
             {
@@ -227,7 +267,7 @@ namespace ItemRestrictorAdvanced
 
             return false;
         }
-        internal static string PlayerInPlayersFolder(string steamId)
+        private string PlayerInPlayersFolder(string steamId)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
@@ -248,17 +288,5 @@ namespace ItemRestrictorAdvanced
             }
             return false;
         }
-        public static bool IsPlayersGroup(IRocketPlayer caller, Group group)
-        {
-            string[] groups = R.Permissions.GetGroups(caller, true).Select(g => g.Id).ToArray();
-            for (ushort i = 0; i < groups.Length; i++)
-            {
-                if (group.GroupID.ToLower() == groups[i].ToLower())
-                    return true;
-            }
-
-            return false;
-        }
-        
     }
 }

@@ -6,15 +6,9 @@ using System.Threading.Tasks;
 
 namespace ItemRestrictorAdvanced
 {
-    class PageSize
+    struct PageSize
     {
         public byte Width { get; set; }
         public byte Height { get; set; }
-
-        public PageSize(byte width, byte height)
-        {
-            Width = width;
-            Height = height;
-        }
     }
 }

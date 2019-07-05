@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Rocket.Core.Commands;
 using System.Collections.Generic;
 using SDG.Unturned;
+using Rocket.Unturned.Player;
 
 namespace ItemRestrictorAdvanced
 {
@@ -52,6 +53,23 @@ namespace ItemRestrictorAdvanced
                 cts.Cancel();
                 Logger.Log("Plugin is turned off in Configuration, unloading...", ConsoleColor.Cyan);
                 UnloadPlugin();
+            }
+        }
+        [RocketCommand("inventory", "", "", AllowedCaller.Both)]
+        [RocketCommandAlias("inv")]
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            foreach (var steamPlayer in Provider.clients)
+            {
+                UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(steamPlayer);
+                for (byte i = 0; i < 8; i++)
+                {
+                    for (byte j = 0; j < player.Inventory.getItemCount(i); j++)
+                    {
+                        ItemJar item = player.Inventory.getItem(i, j);
+                        Console.WriteLine($"id: {item.item.id}, x:{item.x}, y:{item.y}  size x: {item.size_x}, size y: {item.size_y}, rot: {item.rot}");
+                    }
+                }
             }
         }
         static async void WatcherAsync(System.Threading.CancellationToken token)

@@ -16,34 +16,22 @@ namespace ItemRestrictorAdvanced
         public byte x { get; }
         [JsonProperty]
         public byte Quality { get; }
-        [JsonProperty]
-        public byte[] State { get; }
-        //[JsonProperty]
-        //public Dictionary<byte, PageSize> Page { get; }
-        //[JsonProperty]
-        //public (byte, PageSize) Page { get; }
-        [JsonProperty]
-        public byte Page { get; }
-        [JsonProperty]
-        public byte Width { get; }
-        [JsonProperty]
-        public byte Height { get; }
-        public byte Index { get; set; }
+        public byte[] State { get; set; }
+        public byte X { get;}
+        public byte Y { get; }
+        public byte Size_x { get; }
+        public byte Size_y { get; }
 
-        public MyItem()
+        public MyItem(ushort id, byte amount, byte quality, byte[] state, byte x, byte y)
         {
-
-        }
-        public MyItem(ushort id, byte amount, byte quality, byte[] state, byte width, byte height, byte page)
-        {
+            Count = 1;
             ID = id;
-            x = amount;
+            this.x = amount;
             Quality = quality;
             State = state;
-            Count = 1;
-            Width = width;
-            Height = height;
-            Page = page;
+            ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, id);
+            Size_x = itemAsset.size_x;
+            Size_y = itemAsset.size_y;
         }
 
     }

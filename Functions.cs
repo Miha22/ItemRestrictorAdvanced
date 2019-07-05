@@ -25,17 +25,18 @@ namespace ItemRestrictorAdvanced
         {
 
         }
-        private static byte ItemsCountOnPage(byte page, List<MyItem> myItems)
-        {
-            byte counter = 0;
-            foreach (var item in myItems)
-            {
-                if (item.Page == page)
-                    counter++;
-            }
+        //private static byte ItemsCountOnPage(byte page, List<MyItem> myItems)
+        //{
+        //    byte counter = 0;
+        //    foreach (var item in myItems)
+        //    {
+        //        if (item.Page == page)
+        //            counter++;
+        //    }
 
-            return counter;
-        }
+        //    return counter;
+        //}
+
         //internal static void writeBlock(string writepath, string readpath)
         //{
         //    //MyItem[] myItems;
@@ -80,6 +81,10 @@ namespace ItemRestrictorAdvanced
         {
             List<MyItem> myItems = new List<MyItem>();
             Block block = ServerSavedata.readBlock("/Players/" + str + "/" + Provider.map + "/Player/Inventory.dat", 0);
+            if(block == null)
+                System.Console.WriteLine("Player has no items");
+            else
+                System.Console.WriteLine("Player has items");
             //PlayerSavedata.readBlock(steamPlayerID, "/Player/Inventory.dat", (byte)0);
             byte num1 = block.readByte();//BUFFER_SIZE
             for (byte index1 = 0; index1 < PlayerInventory.PAGES - 2; ++index1)
@@ -95,18 +100,17 @@ namespace ItemRestrictorAdvanced
                     //block.readByte();
                     byte y = block.readByte();
                     //block.readByte();
-                    byte rot = 0;
+                    //byte rot = 0;
                     //if (num1 > 4)
-                        rot = block.readByte();
-                    //block.readByte();
+                    //    rot = block.readByte();
+                    block.readByte();
                     ushort newID = block.readUInt16();
                     byte newAmount = block.readByte();
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
                     //block.readByteArray();
                     //byte[] newState = new byte[1] { 1 };
-
-                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState, width, height, index1);
+                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState, x, y);
                     //myItems.Add(new MyItem(width, height, x, y, rot, newID, newAmount, newQuality, newState));
                     if (HasItem(myItem, myItems))
                         continue;
@@ -138,6 +142,16 @@ namespace ItemRestrictorAdvanced
                     //JsonSerializer jsonSerializer = new JsonSerializer();
                     new JsonSerializer().Serialize(jsonWriter, (object)myItems);
                     jsonWriter.Flush();
+                }
+                using (StreamReader streamReader = new StreamReader(newPath))//SDG.Framework.IO.Deserialization
+                {
+                    JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
+                    //JsonSerializer jsonSerializer = new JsonSerializer();
+                    myItems = new JsonSerializer().Deserialize<List<MyItem>>(reader);
+                }
+                foreach (var item in myItems)
+                {
+                    System.Console.WriteLine($"id: {item.ID}, size x: {item.Size_x}, size y: {item.Size_y}");
                 }
                 //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<MyItem>));
                 //using (FileStream fs = new FileStream(newPath, FileMode.OpenOrCreate))

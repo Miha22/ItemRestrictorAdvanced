@@ -9,19 +9,19 @@ namespace ItemRestrictorAdvanced
     class MyItem
     {
         [JsonProperty]
-        public ushort ID { get; }
+        public ushort ID { get; set; }
         [JsonProperty]
         public byte Count { get; set; }
         [JsonProperty]
-        public byte x { get; }
+        public byte x { get; set; }
         [JsonProperty]
-        public byte Quality { get; }
+        public byte Quality { get; set; }
         public byte[] State { get; set; }
-        public byte Rot { get; }
-        public byte X { get;}
-        public byte Y { get; }
-        public byte Size_x { get; }
-        public byte Size_y { get; }
+        public byte Rot { get; set; }
+        public byte X { get; set; }
+        public byte Y { get; set; }
+        public byte Size_x { get; set; }
+        public byte Size_y { get; set; }
         //public static List<(byte, byte, byte)> Pages { get; set; } = new List<(byte, byte, byte)>();
 
         public MyItem()
@@ -41,5 +41,17 @@ namespace ItemRestrictorAdvanced
             Size_y = itemAsset.size_y;
         }
 
+    }
+    class MyItemComparer : IComparer<MyItem>
+    {
+        public int Compare(MyItem item1, MyItem item2)
+        {
+            if ((item1.Size_x * item1.Size_y) > (item2.Size_x * item2.Size_y))
+                return 1;
+            else if ((item1.Size_x * item1.Size_y) < (item2.Size_x * item2.Size_y))
+                return -1;
+            else
+                return 0;
+        }
     }
 }

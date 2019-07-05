@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Security.Permissions;
 using System.Threading;
 
@@ -66,15 +65,52 @@ namespace ItemRestrictorAdvanced
         //File: E:\Program Files (x86)\steam\steamapps\common\Unturned_Server\Servers\server1\Rocket\Plugins\ItemRestrictorAdvanced\Inventories\76561198112559333.json Changed
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            var (playerSteamID, map) = Functions.GetSteamID(e.Name);
-            if (Functions.IsPlayerOnline(playerSteamID))
+            System.Console.WriteLine("OnChange executed!");
+            var (playerSteamID, map) = GetSteamID(e.Name);
+            System.Console.WriteLine($"playerSteamID: {playerSteamID}, map: {map}");
+            if (IsPlayerOnline(playerSteamID))
             {
-                //load inventory
+                System.Console.WriteLine("Player is online!");
             }
             else
             {
+                System.Console.WriteLine("Try add Items is going to be executed!");
                 //Functions.writeBlock($@"\Players\{Functions.PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
+                bool flag = new Functions().TryAddItems($@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
+                System.Console.WriteLine("Try add Items executed! success: {0}", flag);
             }
+        }
+        private (string, string) GetSteamID(string line)
+        {
+            string[] str = line.Split('\\');
+            string steamId = str[str.Length - 1];
+            string map = str[str.Length - 2];
+
+            if (!int.TryParse(steamId, out int steamId32))
+                throw new System.InvalidCastException($"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+
+            return (steamId, map);
+        }
+        private bool IsPlayerOnline(string steamID)
+        {
+            if (SDG.Unturned.Provider.clients.Count == 0)
+                return false;
+            foreach (var steamPlayer in SDG.Unturned.Provider.clients)
+            {
+                if (steamID == steamPlayer.playerID.ToString())
+                    return true;
+            }
+
+            return false;
+        }
+        private string PlayerInPlayersFolder(string steamId)
+        {
+            foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
+            {
+                if (directory.Name.Split('\\')[0] == steamId)
+                    return directory.Name;
+            }
+            throw new System.IO.DirectoryNotFoundException($@"Failed to find: {steamId} in ../{SDG.Unturned.Provider.serverName}/Players  folder!");
         }
         //private static string GetSteamID(string line)
         //{

@@ -1,8 +1,5 @@
 ﻿using System.IO;
-using System.Linq;
 using System.Collections.Generic;
-using Rocket.API;
-using Rocket.Core;
 using SDG.Unturned;
 using SDG.Framework.IO.Serialization;
 using Newtonsoft.Json;
@@ -25,58 +22,6 @@ namespace ItemRestrictorAdvanced
         {
 
         }
-        //private static byte ItemsCountOnPage(byte page, List<MyItem> myItems)
-        //{
-        //    byte counter = 0;
-        //    foreach (var item in myItems)
-        //    {
-        //        if (item.Page == page)
-        //            counter++;
-        //    }
-
-        //    return counter;
-        //}
-
-        //internal static void writeBlock(string writepath, string readpath)
-        //{
-        //    //MyItem[] myItems;
-        //    List<MyItem> myItems;
-        //    using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
-        //    {
-        //        JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
-        //        //JsonSerializer jsonSerializer = new JsonSerializer();
-        //        myItems = new JsonSerializer().Deserialize<List<MyItem>>(reader);
-        //    }
-        //    Block block = new Block();
-        //    block.writeByte(PlayerInventory.SAVEDATA_VERSION);
-        //    for (byte index1 = 0; index1 < PlayerInventory.PAGES - 2; ++index1)
-        //    {
-        //        byte num1;
-        //        byte num2;
-        //        byte num3;
-        //        num1 = myItems[index1].Width;
-        //        num2 = myItems[index1].Height;
-        //        //num3 = (byte)myItems[index1].items.Count; //items on page
-        //        num3 = ItemsCountOnPage(index1, myItems);
-        //        block.writeByte(num1);
-        //        block.writeByte(num2);
-        //        block.writeByte(num3);
-        //        for (byte index2 = 0; index2 < num3; ++index2)
-        //        {
-        //            //ItemJar itemJar = myItems[index1].items[index2];
-        //            ItemJar itemJar = new ItemJar();
-        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
-        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
-        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
-        //            block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
-        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
-        //            block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
-        //            block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
-        //        }
-        //    }
-        //    //PlayerSavedata.writeBlock(this.channel.owner.playerID, "/Player/Inventory.dat", block);
-        //    ServerSavedata.writeBlock(writepath, block);
-        //}
         private void GetSize(string path, out byte width, out byte height)
         {
             Block block = ServerSavedata.readBlock(path, 0);
@@ -84,7 +29,7 @@ namespace ItemRestrictorAdvanced
             width = block.readByte();
             height = block.readByte();
         }
-        public bool TryAddItems(string writepath, string readpath, out List<MyItem> notAddedItems)
+        public bool TryAddItems(string writepath, string readpath)
         {
             Block block = new Block();
             block.writeByte(PlayerInventory.SAVEDATA_VERSION);
@@ -94,46 +39,138 @@ namespace ItemRestrictorAdvanced
                 JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
                 myItems = new JsonSerializer().Deserialize<List<MyItem>>(reader);
             }
+            if (myItems == null)
+                return false;
+            foreach (var myitem in myItems)
+            {
+                ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, myitem.ID);
+                myitem.Size_x = itemAsset.size_x;
+                myitem.Size_y = itemAsset.size_y;
+                myitem.Rot = 0;
+            }
+            myItems.Sort(new MyItemComparer());
             for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)
             {
                 byte width, height, itemsCount;
                 GetSize(writepath, out width, out height);
-                List<MyItem> selectedItems = SelectItems(width, height, myItems);
-            }
-        }
-        private List<MyItem> OrderByLarge(List<MyItem> myItems)
-        {
-            List<MyItem> selectedItems = new List<MyItem>();
-            while(myItems.Count != 0)
-            {
-                MyItem largest = myItems[0];
-                for (byte i = 1; i < myItems.Count; i++)
+                (List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);
+                itemsCount = (byte)selectedItems.Count;
+                block.writeByte(width);
+                block.writeByte(height);
+                block.writeByte(itemsCount);
+                for (byte j = 0; j < itemsCount; j++)
                 {
-                    if ((largest.Size_x * largest.Size_y) <= (myItems[i].Size_x * myItems[i].Size_y))
-                    {
-                        largest = myItems[i];
-                        myItems.RemoveAt(i);
-                    }   
+                    ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
+                    block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
+                    block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
+                    block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
+                    block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
+                    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
+                    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
+                    block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
                 }
-                selectedItems.Add(largest);
             }
+            ServerSavedata.writeBlock(writepath, block);
 
-            return selectedItems;
+            return true;
         }
-        private List<MyItem> SelectItems(byte width, byte height, List<MyItem> myItems)
+        private (List<MyItem>, List<MyItem>) SelectItems(byte width, byte height, List<MyItem> myItems)// for page
         {
             List<MyItem> selectedItems = new List<MyItem>();
+            List<MyItem> unSelectedItems = new List<MyItem>();
+            List<Area> areas = new List<Area>();
             bool[,] page = FillPage(width, height);
+            foreach (var item in myItems)
+            {
+                byte x, y;
+                if (FindPlace(ref page, width, item.Size_x, item.Size_y, out x, out y))
+                {
+                    item.X = x;
+                    item.Y = y;
+                    selectedItems.Add(item);
+                }
+                else
+                {
+                    item.Rot = 1;
+                    if (FindPlace(ref page, width, item.Size_x, item.Size_y, out x, out y))
+                    {
+                        item.X = x;
+                        item.Y = y;
+                        selectedItems.Add(item);
+                    }
+                    else
+                        unSelectedItems.Add(item);
+                }
+                    
+            }
 
+            return (selectedItems, unSelectedItems);
+        }
+        private bool FindPlace(ref bool [,] page, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
+        {
+            for (byte i = 0; i < page.Length; i++)
+            {
+                for (byte j = 0; j < pageWidth; j++)
+                {
+                    if (FindTrues(ref page, pageWidth, i, j, reqWidth, reqHeight, out byte temp_x, out byte temp_y))
+                    {
+                        x = temp_x;
+                        y = temp_y;
+                        FillPageCells(ref page, i, j, reqWidth, reqHeight);
 
-            return selectedItems;
+                        return true;
+                    }
+                }
+            }
+            x = 0;
+            y = 0;
+
+            return false;
+        }
+        private void FillPageCells(ref bool[,] page, byte row, byte startIndex, byte timesSide, byte timesBelow)
+        {
+            for (byte i = 0; i < timesBelow; i++)
+            {
+                byte index = startIndex;
+                for (byte j = startIndex; j < timesSide; j++, index++)
+                {
+                    page[row + i, index] = true;
+                }
+            }
+        }
+        private bool FindTrues(ref bool[,] page, byte pageWidth, byte row, byte startIndex, byte timesSide, byte timesBelow, out byte temp_x, out byte temp_y)
+        {
+            if (pageWidth < (startIndex + timesSide) || page.Length < (row + timesBelow))
+            {
+                temp_x = 0;
+                temp_y = 0;
+                return false;
+            }
+
+            for (byte i = 0; i < timesBelow; i++)
+            {
+                byte index = startIndex;
+                for (byte j = 0; j < timesSide; j++, index++)
+                {
+                    if (page[row + i, index] == false)
+                    {
+                        temp_x = 0;
+                        temp_y = 0;
+                        return false;
+                    }
+                }
+            }
+
+            temp_y = row;
+            temp_x = startIndex;
+            return true;
         }
         private bool[,] FillPage(byte width, byte height)
         {
             bool[,] page = new bool[width, height];
-            for (byte i = 0; i < width; i++)
+            for (byte i = 0; i < height; i++)
             {
-                for (byte j = 0; j < height; j++)
+                for (byte j = 0; j < width; j++)
                 {
                     page[i, j] = true;
                 }
@@ -245,36 +282,6 @@ namespace ItemRestrictorAdvanced
                 //    Logger.LogError($"{e.Message}\n{e.TargetSite}");
                 //}
             }
-        }
-        private (string, string) GetSteamID(string line)
-        {
-            string[] str = line.Split('\\');
-            string steamId = str[str.Length - 1];
-            string map = str[str.Length - 2];
-
-            if (!int.TryParse(steamId, out int steamId32))
-                throw new System.InvalidCastException($"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
-
-            return (steamId, map);
-        }
-        private bool IsPlayerOnline(string steamID)
-        {
-            foreach (var steamPlayer in SDG.Unturned.Provider.clients)
-            {
-                if (steamID == steamPlayer.playerID.ToString())
-                    return true;
-            }
-
-            return false;
-        }
-        private string PlayerInPlayersFolder(string steamId)
-        {
-            foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
-            {
-                if (directory.Name.Split('\\')[0] == steamId)
-                    return directory.Name;
-            }
-            throw new System.IO.DirectoryNotFoundException($@"Failed to find: {steamId} in ../{Provider.serverName}/Players  folder!");
         }
         private bool HasItem(MyItem item, List<MyItem> items)
         {

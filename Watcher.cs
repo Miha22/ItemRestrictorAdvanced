@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Logger = Rocket.Core.Logging.Logger;
+using System.IO;
 using System.Security.Permissions;
 using System.Threading;
 
@@ -75,24 +76,33 @@ namespace ItemRestrictorAdvanced
             else
             {
                 System.Console.WriteLine("Try add Items is going to be executed!");
-                //Functions.writeBlock($@"\Players\{Functions.PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
-                bool flag = new Functions().TryAddItems($@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
+                bool flag = ItemRestrictor.Instance.TryAddItems($@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
                 System.Console.WriteLine("Try add Items executed! success: {0}", flag);
             }
         }
         private (string, string) GetSteamID(string line)
         {
             string[] str = line.Split('\\');
-            string steamId = str[str.Length - 1];
+            string steamId = str[str.Length - 1].Split('.')[0];
             string map = str[str.Length - 2];
+            byte steamId32;
 
-            if (!int.TryParse(steamId, out int steamId32))
-                throw new System.InvalidCastException($"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+            if (!byte.TryParse(steamId.Substring(0, 2), out steamId32))
+            {
+                Logger.LogException(new System.InvalidCastException(), $"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+                return (null, null);
+            }
+            if (!byte.TryParse(steamId.Substring(steamId.Length-1-2, 2), out steamId32))
+            {
+                Logger.LogException(new System.InvalidCastException(), $"Failed to get player SteamID at ItemRestrictorAdvanced.Watcher.GetSteamID(string line), output: {steamId}");
+                return (null, null);
+            }
 
             return (steamId, map);
         }
         private bool IsPlayerOnline(string steamID)
         {
+
             if (SDG.Unturned.Provider.clients.Count == 0)
                 return false;
             foreach (var steamPlayer in SDG.Unturned.Provider.clients)
@@ -107,10 +117,11 @@ namespace ItemRestrictorAdvanced
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
-                if (directory.Name.Split('\\')[0] == steamId)
+                if (directory.Name.Split('_')[0] == steamId)
                     return directory.Name;
             }
-            throw new System.IO.DirectoryNotFoundException($@"Failed to find: {steamId} in ../{SDG.Unturned.Provider.serverName}/Players  folder!");
+            Logger.LogException(new System.IO.DirectoryNotFoundException(), $@"Failed to find: {steamId} in ../{SDG.Unturned.Provider.serverName}/Players  folder!");
+            return null;
         }
         //private static string GetSteamID(string line)
         //{

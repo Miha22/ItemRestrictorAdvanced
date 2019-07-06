@@ -22,13 +22,17 @@ namespace ItemRestrictorAdvanced
         public byte Y { get; set; }
         public byte Size_x { get; set; }
         public byte Size_y { get; set; }
-        //public static List<(byte, byte, byte)> Pages { get; set; } = new List<(byte, byte, byte)>();
+        public byte Index { get; set; }
+        [JsonProperty]
+        public byte Width { get; set; }
+        [JsonProperty]
+        public byte Height { get; set; }
 
         public MyItem()
         {
             
         }
-        public MyItem(ushort id, byte amount, byte quality, byte[] state, byte rot, byte x, byte y)
+        public MyItem(ushort id, byte amount, byte quality, byte[] state, byte rot, byte x, byte y, byte index, byte width, byte height)
         {
             Count = 1;
             ID = id;
@@ -36,11 +40,25 @@ namespace ItemRestrictorAdvanced
             Quality = quality;
             State = state;
             Rot = rot;
+            X = x;
+            Y = y;
+            Index = index;
+            Width = width;
+            Height = height;
             ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, id);
             Size_x = itemAsset.size_x;
             Size_y = itemAsset.size_y;
         }
+        //private bool HasIndex(ref byte[,] Pages, ushort index)
+        //{
+        //    for (byte i = 0; i < Pages.Length; i++)
+        //    {
+        //        if (Pages[i, 0] == index)
+        //            return true;
+        //    }
 
+        //    return false;
+        //}
     }
     class MyItemComparer : IComparer<MyItem>
     {

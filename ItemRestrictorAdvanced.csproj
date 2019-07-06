@@ -34,10 +34,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Cell.cs" />
     <Compile Include="CommandI.cs" />
     <Compile Include="CommandV.cs" />
-    <Compile Include="Functions.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="MyItem.cs" />

@@ -22,7 +22,8 @@ namespace ItemRestrictorAdvanced
         public byte Y { get; set; }
         public byte Size_x { get; set; }
         public byte Size_y { get; set; }
-        public byte Index { get; set; }
+        [JsonProperty]
+        public byte Page { get; set; }
         [JsonProperty]
         public byte Width { get; set; }
         [JsonProperty]
@@ -42,7 +43,7 @@ namespace ItemRestrictorAdvanced
             Rot = rot;
             X = x;
             Y = y;
-            Index = index;
+            Page = index;
             Width = width;
             Height = height;
             ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, id);

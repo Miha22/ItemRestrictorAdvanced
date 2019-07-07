@@ -75,9 +75,22 @@ namespace ItemRestrictorAdvanced
             }
             else
             {
-                System.Console.WriteLine("Try add Items is going to be executed!");
-                bool flag = ItemRestrictor.Instance.TryAddItems($@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat", e.FullPath);
-                System.Console.WriteLine("Try add Items executed! success: {0}", flag);
+                string path = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat";
+                //string pathCached = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\InventoryCACHED.dat";
+                //System.Console.WriteLine("Try add Items is going to be executed!");
+                FileInfo fileInfo = new FileInfo(path);
+                //if (fileInfo.Exists)
+                //{
+                //    fileInfo.CopyTo(pathCached).Delete();
+                //    fileInfo = null;
+                //}
+                //if (ItemRestrictor.Instance.TryAddItems(path, e.FullPath))
+                //    new FileInfo(pathCached).Delete();
+                //else
+                //    new FileInfo(pathCached).MoveTo(path);\
+                bool flag = ItemRestrictor.Instance.TryAddItems(path, e.FullPath);
+
+                System.Console.WriteLine("Try add Items executed! success");
             }
         }
         private (string, string) GetSteamID(string line)

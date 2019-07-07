@@ -121,7 +121,7 @@ namespace ItemRestrictorAdvanced
         {
             foreach (var item in myItems)
             {
-                if (item.Index == pageIndex)
+                if (item.Page == pageIndex)
                     return (item.Width, item.Height);
             }
 
@@ -129,19 +129,19 @@ namespace ItemRestrictorAdvanced
         }
         public bool TryAddItems(string writepath, string readpath)
         {
-            Console.WriteLine("point -3");
+            //Console.WriteLine("point -3");
             Block block = new Block();
-            Console.WriteLine("point -2");
+            //Console.WriteLine("point -2");
             block.writeByte(PlayerInventory.SAVEDATA_VERSION);
-            Console.WriteLine("point -1");
+            //Console.WriteLine("point -1");
             List<MyItem> myItems = new List<MyItem>();
-            Console.WriteLine("point 0");
+            //Console.WriteLine("point 0");
             using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
             {
                 JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
                 myItems = new JsonSerializer().Deserialize<List<MyItem>>(reader);
             }
-            Console.WriteLine("point 1");
+            //Console.WriteLine("point 1");
             if (myItems == null)
             {
                 Console.WriteLine("Items is null");
@@ -151,36 +151,16 @@ namespace ItemRestrictorAdvanced
             {
                 Console.WriteLine($"items count: {myItems.Count}");
             }
-
-            //foreach (var myItem in myItems)
-            //{
-            //    Console.WriteLine("point 1.1");
-            //    ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, myItem.ID);
-            //    Console.WriteLine("point 1.2");
-            //    myItem.Size_x = itemAsset.size_x;
-            //    myItem.Size_y = itemAsset.size_y;
-            //    myItem.Rot = 0;
-            //    Console.WriteLine("point 1.3");
-            //    if (myItem.Count > 1)
-            //    {
-
-            //        for (byte i = 0; i < myItem.Count - 1; i++)
-            //        {
-            //            myItems.Add(myItem);
-            //        }
-            //    }
-            //    Console.WriteLine("point 1.4");
-            //}
             int len = myItems.Count;
             for (byte i = 0; i < (byte)len; i++)
             {
-                Console.WriteLine("point 1.1");
+                //Console.WriteLine("point 1.1");
                 ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, myItems[i].ID);
-                Console.WriteLine("point 1.2");
+                //Console.WriteLine("point 1.2");
                 myItems[i].Size_x = itemAsset.size_x;
                 myItems[i].Size_y = itemAsset.size_y;
                 myItems[i].Rot = 0;
-                Console.WriteLine("point 1.3");
+                //Console.WriteLine("point 1.3");
                 if (myItems[i].Count > 1)
                 {
                     for (byte j = 0; j < myItems[i].Count-1; j++)
@@ -188,28 +168,38 @@ namespace ItemRestrictorAdvanced
                         myItems.Add(myItems[i]);
                     }
                 }
-                Console.WriteLine("point 1.4");
+                //Console.WriteLine("point 1.4");
             }
-            Console.WriteLine("point 2");
+            foreach (var item in myItems)
+            {
+                Console.WriteLine($"id {item.ID}, width: {item.Width}, height; {item.Height}, index: {item.Page}");
+            }
+            //Console.WriteLine("point 2");
             myItems.Sort(new MyItemComparer());
             
             for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)
             {
-                Console.WriteLine("for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)");
+                //Console.WriteLine("for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)");
                 byte width, height, itemsCount;
-                Console.WriteLine("byte width, height, itemsCount;");
+                //Console.WriteLine("byte width, height, itemsCount;");
                 (width, height) = GetPageSize(myItems, i);
-                Console.WriteLine(" width = myItems[0].Pages[i].width/height");
-                Console.WriteLine($"page#: {i}  wid: {width}, hei: {height}");
-                Console.WriteLine("page#: {i}  wid: {width}, hei: {height}");
+                //Console.WriteLine(" width = myItems[0].Pages[i].width/height");
+                //Console.WriteLine($"page#: {i}  wid: {width}, hei: {height}");
+                //Console.WriteLine("page#: {i}  wid: {width}, hei: {height}");
+                Console.WriteLine("-------------------");
+                Console.WriteLine($"Operatin on PAGE: {i}, width: {width}, height: {height}");
                 (List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);
-                Console.WriteLine("(List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);");
+                foreach (var item in selectedItems)
+                {
+                    Console.WriteLine($"CHECKING X AND Y:  Page: {i}, ID: {item.ID}, x: {item.X}, y: {item.Y}");
+                }
+                //Console.WriteLine("(List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);");
                 itemsCount = (byte)selectedItems.Count;
-                Console.WriteLine("itemsCount = (byte)selectedItems.Count");
+                //Console.WriteLine("itemsCount = (byte)selectedItems.Count");
                 block.writeByte(width);
                 block.writeByte(height);
                 block.writeByte(itemsCount);
-                Console.WriteLine("block.writeByte(itemsCount);");
+               // Console.WriteLine("block.writeByte(itemsCount);");
                 for (byte j = 0; j < itemsCount; j++)
                 {
                     ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
@@ -221,50 +211,72 @@ namespace ItemRestrictorAdvanced
                     block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
                     block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
                 }
-                Console.WriteLine("point 5");
+                //Console.WriteLine("point 5");
+                myItems = unSelectedItems;
             }
             ServerSavedata.writeBlock(writepath, block);
-            Console.WriteLine("point 6");
+            //Console.WriteLine("point 6");
             return true;
         }
         private (List<MyItem>, List<MyItem>) SelectItems(byte width, byte height, List<MyItem> myItems)// for page
         {
+            //Console.WriteLine("point 7");
             List<MyItem> selectedItems = new List<MyItem>();
+            //Console.WriteLine("point 8");
             List<MyItem> unSelectedItems = new List<MyItem>();
+            //Console.WriteLine("point 9");
             bool[,] page = FillPage(width, height);
+            //Console.WriteLine("point 10");
+            Console.WriteLine($"page height: {height}");
             foreach (var item in myItems)
             {
-                byte x, y;
-                if (FindPlace(ref page, width, item.Size_x, item.Size_y, out x, out y))
+                //Console.WriteLine("point 11");
+                if (FindPlace(ref page, height, width, item.Size_x, item.Size_y, out byte x, out byte y))
                 {
+                    Console.WriteLine("found place");
                     item.X = x;
                     item.Y = y;
                     selectedItems.Add(item);
                 }
                 else
                 {
-                    item.Rot = 1;
-                    if (FindPlace(ref page, width, item.Size_x, item.Size_y, out x, out y))
-                    {
-                        item.X = x;
-                        item.Y = y;
-                        selectedItems.Add(item);
-                    }
-                    else
-                        unSelectedItems.Add(item);
+                    Console.WriteLine("not found place");
+                    //if (FindPlace(ref page, width, item.Size_y, item.Size_x, out x, out y))
+                    //{
+                    //    //Console.WriteLine("point 11 not found place then found place");
+                    //    item.X = x;
+                    //    item.Y = y;
+                    //    selectedItems.Add(item);
+                    //}
+                    //else
+                    //{
+                    //    unSelectedItems.Add(item);
+                    //    //Console.WriteLine("point 11 not found place then not found place");
+                    //}
+                    unSelectedItems.Add(item);
                 }
-
             }
+            //Console.WriteLine("point 12");
 
             return (selectedItems, unSelectedItems);
         }
-        private bool FindPlace(ref bool[,] page, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
+        private bool FindPlace(ref bool[,] page, byte pageHeight, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
         {
-            for (byte i = 0; i < page.Length; i++)
+            Console.WriteLine($"page length/height: {page.Length}");
+            for (int i = 0; i < pageHeight; i++)
+            {
+                for (int j = 0; j < pageWidth; j++)
+                {
+                    Console.Write($"{page[i, j]} ");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("-----------------------------");
+            for (byte i = 0; i < pageHeight; i++)
             {
                 for (byte j = 0; j < pageWidth; j++)
                 {
-                    if (FindTrues(ref page, pageWidth, i, j, reqWidth, reqHeight, out byte temp_x, out byte temp_y))
+                    if (FindTrues(ref page, pageHeight, pageWidth, i, j, reqWidth, reqHeight, out byte temp_x, out byte temp_y))
                     {
                         x = temp_x;
                         y = temp_y;
@@ -279,32 +291,32 @@ namespace ItemRestrictorAdvanced
 
             return false;
         }
-        private void FillPageCells(ref bool[,] page, byte row, byte startIndex, byte timesSide, byte timesBelow)
+        private void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
         {
-            for (byte i = 0; i < timesBelow; i++)
+            for (byte i = 0; i < reqHeight; i++)
             {
                 byte index = startIndex;
-                for (byte j = startIndex; j < timesSide; j++, index++)
+                for (byte j = startIndex; j < reqWidth; j++, index++)
                 {
-                    page[row + i, index] = true;
+                    page[startRowindex + i, index] = false;
                 }
             }
         }
-        private bool FindTrues(ref bool[,] page, byte pageWidth, byte row, byte startIndex, byte timesSide, byte timesBelow, out byte temp_x, out byte temp_y)
+        private bool FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
         {
-            if (pageWidth < (startIndex + timesSide) || page.Length < (row + timesBelow))
+            if (pageWidth < (startIndex + reqWidth - 1) || pageHeight < (startRowindex + reqHeight - 1))
             {
                 temp_x = 0;
                 temp_y = 0;
                 return false;
             }
 
-            for (byte i = 0; i < timesBelow; i++)
+            for (byte i = 0; i < reqHeight; i++)
             {
                 byte index = startIndex;
-                for (byte j = 0; j < timesSide; j++, index++)
+                for (byte j = 0; j < reqWidth; j++, index++)
                 {
-                    if (page[row + i, index] == false)
+                    if (page[startRowindex + i, index] == false)
                     {
                         temp_x = 0;
                         temp_y = 0;
@@ -313,13 +325,13 @@ namespace ItemRestrictorAdvanced
                 }
             }
 
-            temp_y = row;
+            temp_y = startRowindex;
             temp_x = startIndex;
             return true;
         }
         private bool[,] FillPage(byte width, byte height)
         {
-            bool[,] page = new bool[width, height];
+            bool[,] page = new bool[height, width];
             for (byte i = 0; i < height; i++)
             {
                 for (byte j = 0; j < width; j++)
@@ -339,16 +351,21 @@ namespace ItemRestrictorAdvanced
             else
                 System.Console.WriteLine("Player has items");
             byte num1 = block.readByte();//BUFFER_SIZE
-            for (byte index1 = 0; index1 < PlayerInventory.PAGES - 1; ++index1)
+            for (byte index1 = 0, counter = 0; counter < PlayerInventory.PAGES - 1; index1++, counter++)
             {
                 byte width = block.readByte();
                 byte height = block.readByte();
                 //block.readByte();
                 //block.readByte();
-                //System.Console.WriteLine($"page: {index1} wid: {width}, hei: {height}");
                 byte itemCount = block.readByte();
                 //MyItem.Pages.Clear();
                 //MyItem.Pages.Add((width, height, itemCount));
+                if(width == 0 && height == 0 && itemCount == 0)
+                {
+                    index1--;
+                    continue;
+                }
+                Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
                 for (byte index = 0; index < itemCount; index++)
                 {
                     byte x = block.readByte();
@@ -363,7 +380,11 @@ namespace ItemRestrictorAdvanced
                     byte newAmount = block.readByte();
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
-                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState, rot, x, y, index, width, height);
+                    foreach (var item in newState)
+                    {
+                        Console.WriteLine($"ReadBlock state for Page: {index1}, state: {item}");
+                    }
+                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState, rot, x, y, index1, width, height);
                     if (HasItem(myItem, myItems))
                         continue;
                     else

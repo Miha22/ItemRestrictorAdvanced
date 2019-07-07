@@ -79,7 +79,7 @@ namespace ItemRestrictorAdvanced
             byte[] buffer = new byte[fileStream.Length];
             if (fileStream.Read(buffer, 0, buffer.Length) != buffer.Length)
             {
-                System.Console.WriteLine((object)"Failed to read the correct file size."));
+                System.Console.WriteLine("Failed to read the correct file size.");
                 return (byte[])null;
             }
             fileStream.Close();

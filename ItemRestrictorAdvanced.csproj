@@ -40,6 +40,7 @@
     <Compile Include="Item.cs" />
     <Compile Include="MyItem.cs" />
     <Compile Include="MyItemsPage.cs" />
+    <Compile Include="Page.cs" />
     <Compile Include="PageSize.cs" />
     <Compile Include="PluginConfiguration.cs" />
     <Compile Include="Plugin.cs" />

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Permissions;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
@@ -75,21 +76,23 @@ namespace ItemRestrictorAdvanced
             }
             else
             {
-                string path = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat";
+                string pathWrite = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat";
+                string pathPages = $@"{e.FullPath.Substring(0, e.FullPath.Length - 23)}\PagesData_DoNotTouch\PagesData_{playerSteamID}.json";
                 //string pathCached = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\InventoryCACHED.dat";
                 //System.Console.WriteLine("Try add Items is going to be executed!");
-                FileInfo fileInfo = new FileInfo(path);
+                //FileInfo fileInfo = new FileInfo(pathWrite);
                 //if (fileInfo.Exists)
                 //{
                 //    fileInfo.CopyTo(pathCached).Delete();
                 //    fileInfo = null;
-                //}
+                //} Inventory.json
                 //if (ItemRestrictor.Instance.TryAddItems(path, e.FullPath))
                 //    new FileInfo(pathCached).Delete();
                 //else
                 //    new FileInfo(pathCached).MoveTo(path);\
-                bool flag = ItemRestrictor.Instance.TryAddItems(path, e.FullPath);
-
+                (bool flag, List<MyItem> unSelected) = ItemRestrictor.Instance.TryAddItems(pathWrite, e.FullPath, pathPages);
+                //System.Console.WriteLine($"Exists? {File.Exists(pathPages)}");
+                //System.Console.WriteLine(pathPages);
                 System.Console.WriteLine("Try add Items executed! success");
             }
         }

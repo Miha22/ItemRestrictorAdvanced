@@ -117,24 +117,41 @@ namespace ItemRestrictorAdvanced
         {
 
         }
-        private (byte, byte) GetPageSize(List<MyItem> myItems, byte pageIndex)
+        private (byte, byte) GetPageSize(string readpath, byte pageIndex)
         {
-            foreach (var item in myItems)
+            List<Page> pages;
+            using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
             {
-                if (item.Page == pageIndex)
-                    return (item.Width, item.Height);
+                JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
+                pages = new JsonSerializer().Deserialize<List<Page>>(reader);
+            }
+            foreach (var page in pages)
+            {
+                if (page.Number == pageIndex)
+                    return (page.Width, page.Height);
             }
 
             return (0, 0);
         }
-        public bool TryAddItems(string writepath, string readpath)
+        private byte GetPagesCount(string readpath)
+        {
+            List<Page> pages;
+            using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
+            {
+                JsonReader reader = (JsonReader)new JsonTextReader((TextReader)streamReader);
+                pages = new JsonSerializer().Deserialize<List<Page>>(reader);
+            }
+
+            return (byte)pages.Count;
+        }
+        public (bool, List<MyItem>) TryAddItems(string writepath, string readpath, string readpath2)
         {
             //Console.WriteLine("point -3");
             Block block = new Block();
             //Console.WriteLine("point -2");
             block.writeByte(PlayerInventory.SAVEDATA_VERSION);
             //Console.WriteLine("point -1");
-            List<MyItem> myItems = new List<MyItem>();
+            List<MyItem> myItems;
             //Console.WriteLine("point 0");
             using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
             {
@@ -145,7 +162,7 @@ namespace ItemRestrictorAdvanced
             if (myItems == null)
             {
                 Console.WriteLine("Items is null");
-                return false;
+                return (false, null);
             }
             else
             {
@@ -170,39 +187,57 @@ namespace ItemRestrictorAdvanced
                 }
                 //Console.WriteLine("point 1.4");
             }
-            foreach (var item in myItems)
-            {
-                Console.WriteLine($"id {item.ID}, width: {item.Width}, height; {item.Height}, index: {item.Page}");
-            }
+            //foreach (var item in myItems)
+            //{
+            //    Console.WriteLine($"id {item.ID}, width: {item.Width}, height; {item.Height}, index: {item.Page}");
+            //}
             //Console.WriteLine("point 2");
             myItems.Sort(new MyItemComparer());
-            
-            for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)
+            foreach (var item in myItems)
+            {
+                Console.WriteLine($"Sorted items: {item.ID}, size x: {item.Size_x}, size y: {item.Size_y}");
+            }
+            byte pages = GetPagesCount(readpath2);
+            for (byte i = 2; i < pages; i++)
             {
                 //Console.WriteLine("for (byte i = 0; i < PlayerInventory.PAGES - 1; i++)");
                 byte width, height, itemsCount;
                 //Console.WriteLine("byte width, height, itemsCount;");
-                (width, height) = GetPageSize(myItems, i);
+                (width, height) = GetPageSize(readpath2, i);
                 //Console.WriteLine(" width = myItems[0].Pages[i].width/height");
                 //Console.WriteLine($"page#: {i}  wid: {width}, hei: {height}");
                 //Console.WriteLine("page#: {i}  wid: {width}, hei: {height}");
                 Console.WriteLine("-------------------");
-                Console.WriteLine($"Operatin on PAGE: {i}, width: {width}, height: {height}");
+                Console.WriteLine($"Operation on PAGE: {i}, width: {width}, height: {height}");
                 (List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);
-                foreach (var item in selectedItems)
-                {
-                    Console.WriteLine($"CHECKING X AND Y:  Page: {i}, ID: {item.ID}, x: {item.X}, y: {item.Y}");
-                }
                 //Console.WriteLine("(List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);");
+                Console.WriteLine($"selectedItems = null? {selectedItems == null}, unSelectedItems = null? {unSelectedItems == null}");
                 itemsCount = (byte)selectedItems.Count;
                 //Console.WriteLine("itemsCount = (byte)selectedItems.Count");
                 block.writeByte(width);
                 block.writeByte(height);
                 block.writeByte(itemsCount);
-               // Console.WriteLine("block.writeByte(itemsCount);");
-                for (byte j = 0; j < itemsCount; j++)
+                // Console.WriteLine("block.writeByte(itemsCount);");
+                //for (byte j = 0; j < itemsCount; j++)
+                //{
+                //    ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
+                //    block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
+                //    block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
+                //    block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
+                //    block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
+                //    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
+                //    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
+                //    block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
+                //}
+                Console.WriteLine($"items count: {itemsCount}");
+                byte j = 0;
+                do
                 {
-                    ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
+                    ItemJar itemJar;
+                    if (itemsCount == 0)
+                        itemJar = null;
+                    else
+                        itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
                     block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
                     block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
                     block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
@@ -210,13 +245,15 @@ namespace ItemRestrictorAdvanced
                     block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
                     block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
                     block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
-                }
+                    j++;
+                } while (j < itemsCount);
+                
                 //Console.WriteLine("point 5");
                 myItems = unSelectedItems;
             }
             ServerSavedata.writeBlock(writepath, block);
             //Console.WriteLine("point 6");
-            return true;
+            return (true, myItems);
         }
         private (List<MyItem>, List<MyItem>) SelectItems(byte width, byte height, List<MyItem> myItems)// for page
         {
@@ -228,9 +265,16 @@ namespace ItemRestrictorAdvanced
             bool[,] page = FillPage(width, height);
             //Console.WriteLine("point 10");
             Console.WriteLine($"page height: {height}");
+            Console.WriteLine($"myitems null? {myItems == null}");
+            Console.WriteLine($"myitems zero? {myItems.Count == 0}");
+            for (int i = 0; i < myItems.Count; i++)
+            {
+                Console.WriteLine($"width:{width}, height: {height}, item id: {myItems[i].ID}, size x: {myItems[i].Size_x}, size y: {myItems[i].Size_y}");
+                unSelectedItems.Add(myItems[i]);
+            }
             foreach (var item in myItems)
             {
-                //Console.WriteLine("point 11");
+                Console.WriteLine("point 11");
                 if (FindPlace(ref page, height, width, item.Size_x, item.Size_y, out byte x, out byte y))
                 {
                     Console.WriteLine("found place");
@@ -241,20 +285,10 @@ namespace ItemRestrictorAdvanced
                 else
                 {
                     Console.WriteLine("not found place");
-                    //if (FindPlace(ref page, width, item.Size_y, item.Size_x, out x, out y))
-                    //{
-                    //    //Console.WriteLine("point 11 not found place then found place");
-                    //    item.X = x;
-                    //    item.Y = y;
-                    //    selectedItems.Add(item);
-                    //}
-                    //else
-                    //{
-                    //    unSelectedItems.Add(item);
-                    //    //Console.WriteLine("point 11 not found place then not found place");
-                    //}
                     unSelectedItems.Add(item);
+                    Console.WriteLine("not found finished");
                 }
+                Console.WriteLine($"width:{width}, height: {height}, item id: {item.ID}, size x: {item.Size_x}, size y: {item.Size_y}");
             }
             //Console.WriteLine("point 12");
 
@@ -342,9 +376,10 @@ namespace ItemRestrictorAdvanced
 
             return page;
         }
-        private List<MyItem> GetPlayerItems(string steamIdstr)//look up a call of GetPlayerItems for "str" for more info
+        private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr)//look up a call of GetPlayerItems for "str" for more info
         {
             List<MyItem> myItems = new List<MyItem>();
+            List<Page> pages = new List<Page>();
             Block block = ServerSavedata.readBlock("/Players/" + steamIdstr + "/" + Provider.map + "/Player/Inventory.dat", 0);
             if (block == null)
                 System.Console.WriteLine("Player has no items");
@@ -365,6 +400,7 @@ namespace ItemRestrictorAdvanced
                     index1--;
                     continue;
                 }
+                pages.Add(new Page(index1, width, height));
                 Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
                 for (byte index = 0; index < itemCount; index++)
                 {
@@ -380,18 +416,18 @@ namespace ItemRestrictorAdvanced
                     byte newAmount = block.readByte();
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
-                    foreach (var item in newState)
-                    {
-                        Console.WriteLine($"ReadBlock state for Page: {index1}, state: {item}");
-                    }
-                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState, rot, x, y, index1, width, height);
+                    //foreach (var item in newState)
+                    //{
+                    //    Console.WriteLine($"ReadBlock state for Page: {index1}, state: {item}");
+                    //}
+                    MyItem myItem = new MyItem(newID, newAmount, newQuality);/*, newState, rot, x, y, index1, width, height);*/
                     if (HasItem(myItem, myItems))
                         continue;
                     else
                         myItems.Add(myItem);
                 }
             }
-            return myItems;
+            return (myItems, pages);
         }
         public void LoadInventoryTo(string path)
         {
@@ -400,18 +436,47 @@ namespace ItemRestrictorAdvanced
                 //string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.json";
                 //string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{directory.Name.Split('_')[0]}.json";
                 //string newPath = path + $@"\{directory.Name.Split('_')[0]}_{PlayerName(directory.Name.Split('_')[0])}.json";
-                string newPath = path + $@"\{directory.Name.Split('_')[0]}.json";
+                string folderForPages = path + $@"\PagesData_DoNotTouch";
+                //DirectoryInfo dir = new DirectoryInfo(folderForPages);
+                //if (!dir.Exists)
+                //    dir.Create();
+
+                if (!System.IO.Directory.Exists(folderForPages))
+                    System.IO.Directory.CreateDirectory(folderForPages);
+                DirectoryInfo dir = new DirectoryInfo(folderForPages);
+                if (directory.Attributes == FileAttributes.ReadOnly)
+                    directory.Attributes &= ~FileAttributes.ReadOnly;
+
+                string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
+                string pathPages = path + $@"\{dir.Name}\PagesData_{directory.Name.Split('_')[0]}.json";
+
                 //if (!File.Exists(newPath))
                 //    File.Create(newPath);
-                FileInfo file = new FileInfo(newPath);
-                if (file.Attributes == FileAttributes.ReadOnly)
-                    file.Attributes &= ~FileAttributes.ReadOnly;
-                List<MyItem> myItems = GetPlayerItems(directory.Name);
+                //FileInfo file = new FileInfo(pathPlayer);
+                //if (!file.Exists)
+                //    file.Create();
+                //if (file.Attributes == FileAttributes.ReadOnly)
+                //    file.Attributes &= ~FileAttributes.ReadOnly;
+                //file = null;
+                //FileInfo file2 = new FileInfo(pathPages);
+                //if (!file2.Exists)
+                //    file2.Create();
+                //if (file2.Attributes == FileAttributes.ReadOnly)
+                //    file2.Attributes &= ~FileAttributes.ReadOnly;
+                //file2 = null;
+
+                (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
                 //new JSONSerializer().serialize<List<MyItem>>(myItems, newPath, false);
-                using (StreamWriter streamWriter = new StreamWriter(newPath))//SDG.Framework.IO.Serialization
+                using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
                 {
                     JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
                     new JsonSerializer().Serialize(jsonWriter, (object)myItems);
+                    jsonWriter.Flush();
+                }
+                using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
+                {
+                    JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
+                    new JsonSerializer().Serialize(jsonWriter, (object)pages);
                     jsonWriter.Flush();
                 }
                 //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<MyItem>));

@@ -204,6 +204,21 @@ namespace ItemRestrictorAdvanced
                 byte width, height, itemsCount;
                 //Console.WriteLine("byte width, height, itemsCount;");
                 (width, height) = GetPageSize(readpath2, i);
+                if ((width == 0 && height == 0))
+                {
+                    block.writeByte(1);
+                    block.writeByte(1);
+                    block.writeByte(1);
+                    block.writeByte(0);
+                    block.writeByte(0);
+                    block.writeByte(0);
+                    block.writeUInt16(0);
+                    block.writeByte(0);
+                    block.writeByte(0);
+                    block.writeByteArray(new byte[0]);
+                    continue;
+                }
+
                 //Console.WriteLine(" width = myItems[0].Pages[i].width/height");
                 //Console.WriteLine($"page#: {i}  wid: {width}, hei: {height}");
                 //Console.WriteLine("page#: {i}  wid: {width}, hei: {height}");
@@ -263,7 +278,6 @@ namespace ItemRestrictorAdvanced
             List<MyItem> selectedItems = new List<MyItem>();
             //Console.WriteLine("point 8");
             List<MyItem> unSelectedItems = new List<MyItem>();
-            Console.WriteLine($"selectedItems before add: {selectedItems.Count}, UNselectedItems before add: {unSelectedItems.Count}");
             //Console.WriteLine("point 9");
             bool[,] page = FillPage(width, height);
             //Console.WriteLine("point 10");
@@ -277,15 +291,16 @@ namespace ItemRestrictorAdvanced
             //}
             foreach (var item in myItems)
             {
-                Console.WriteLine("foreach (var item in myItems)");
                 if (FindPlace(ref page, height, width, item.Size_x, item.Size_y, out byte x, out byte y))
                 {
                     Console.WriteLine("found place");
+                    Console.WriteLine("------------------------------------");
                     item.X = x;
                     item.Y = y;
+                    Console.WriteLine($"item.X: {item.X}, item.Y: {item.Y}");
+                    Console.WriteLine("------------------------------------");
                     selectedItems.Add(item);
                     //myItems.Remove(item);
-                    Console.WriteLine($"page length/height AFTER: {page.Length}");
                     for (int i = 0; i < height; i++)
                     {
                         for (int j = 0; j < width; j++)
@@ -305,7 +320,6 @@ namespace ItemRestrictorAdvanced
                 Console.WriteLine($"width:{width}, height: {height}, item id: {item.ID}, size x: {item.Size_x}, size y: {item.Size_y}");
             }
             //Console.WriteLine("point 12");
-            Console.WriteLine($"selectedItems after add: {selectedItems.Count}, UNselectedItems after add: {unSelectedItems.Count}");
             return (selectedItems, unSelectedItems);
         }
         private bool FindPlace(ref bool[,] page, byte pageHeight, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
@@ -314,7 +328,6 @@ namespace ItemRestrictorAdvanced
             Console.WriteLine();
             Console.WriteLine("0. FindPlace()/Starting new item");
             Console.WriteLine("-----------------------------");
-            Console.WriteLine($"page length/height START: {page.Length}");
             for (int i = 0; i < pageHeight; i++)
             {
                 for (int j = 0; j < pageWidth; j++)
@@ -357,12 +370,11 @@ namespace ItemRestrictorAdvanced
         private void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
         {
             Console.WriteLine("3. FillPageCells()");
-            for (byte i = 0; i < reqHeight; i++)
+            for (byte i = startRowindex; i < (reqHeight + startRowindex); i++)
             {
-                byte index = startIndex;
-                for (byte j = startIndex; j < reqWidth; j++, index++)
+                for (byte j = startIndex; j < (reqWidth + startIndex); j++)
                 {
-                    page[startRowindex + i, index] = false;
+                    page[i, j] = false;
                 }
             }
         }
@@ -375,20 +387,20 @@ namespace ItemRestrictorAdvanced
             {
                 temp_x = 0;
                 temp_y = 0;
-                Console.WriteLine("Dimensions failure!");
+                Console.WriteLine("Width failure!");
                 return (false, Failure.Width);
             }
             if ((pageHeight - startRowindex) < reqHeight)
             {
                 temp_x = 0;
                 temp_y = 0;
-                Console.WriteLine("Dimensions failure!");
+                Console.WriteLine("Height failure!");
                 return (false, Failure.Height);
             }
 
-            for (byte i = startRowindex; i < reqHeight; i++)
+            for (byte i = startRowindex; i < (reqHeight + startRowindex); i++)
             {
-                for (byte j = startIndex; j < reqWidth; j++)
+                for (byte j = startIndex; j < (reqWidth + startIndex); j++)
                 {
                     if (page[i, j] == false)
                     {
@@ -436,7 +448,7 @@ namespace ItemRestrictorAdvanced
                 byte itemCount = block.readByte();
                 //MyItem.Pages.Clear();
                 //MyItem.Pages.Add((width, height, itemCount));
-                if(width == 0 && height == 0 && itemCount == 0)
+                if (width == 0 && height == 0)
                 {
                     index1--;
                     continue;

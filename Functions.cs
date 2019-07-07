@@ -51,18 +51,18 @@ namespace ItemRestrictorAdvanced
         {
             return readBlock(ServerSavedata.directory + "/" + Provider.serverID + path, false, prefix);
         }
-        public static Block readBlock(string path, bool useCloud, byte prefix)
+        private static Block readBlock(string path, bool useCloud, byte prefix)
         {
             return readBlockRW(path, useCloud, true, prefix);
         }
-        public static Block readBlockRW(string path, bool useCloud, bool usePath, byte prefix)
+        private static Block readBlockRW(string path, bool useCloud, bool usePath, byte prefix)
         {
             byte[] contents = readBytes(path, useCloud, usePath);
             if (contents == null)
                 return (Block)null;
             return new Block((int)prefix, contents);
         }
-        public static byte[] readBytes(string path, bool useCloud, bool usePath)
+        private static byte[] readBytes(string path, bool useCloud, bool usePath)
         {
             if (useCloud)
                 return ReadWrite.cloudFileRead(path);

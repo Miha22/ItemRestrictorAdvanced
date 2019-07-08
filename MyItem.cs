@@ -43,12 +43,22 @@ namespace ItemRestrictorAdvanced
             //Rot = rot;
             //X = x;
             //Y = y;
-            //Page = index;
+            //Page = page;
             //Width = width;
             //Height = height;
             //ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, id);
             //Size_x = itemAsset.size_x;
             //Size_y = itemAsset.size_y;
+        }
+        public MyItem(ushort id, byte amount, byte quality, byte rot, byte sizeX, byte sizeY)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
+        {
+            Count = 1;
+            ID = id;
+            this.x = amount;
+            Quality = quality;
+            Rot = rot;
+            Size_x = sizeX;
+            Size_y = sizeY;
         }
         //private bool HasIndex(ref byte[,] Pages, ushort index)
         //{

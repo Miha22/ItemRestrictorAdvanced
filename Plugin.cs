@@ -57,23 +57,23 @@ namespace ItemRestrictorAdvanced
                 UnloadPlugin();
             }
         }
-        [RocketCommand("inventory", "", "", AllowedCaller.Both)]
-        [RocketCommandAlias("inv")]
-        public void Execute(IRocketPlayer caller, string[] command)
-        {
-            foreach (var steamPlayer in Provider.clients)
-            {
-                UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(steamPlayer);
-                for (byte i = 0; i < 8; i++)
-                {
-                    for (byte j = 0; j < player.Inventory.getItemCount(i); j++)
-                    {
-                        ItemJar item = player.Inventory.getItem(i, j);
-                        Console.WriteLine($"id: {item.item.id}, x:{item.x}, y:{item.y}  size x: {item.size_x}, size y: {item.size_y}, rot: {item.rot}");
-                    }
-                }
-            }
-        }
+        //[RocketCommand("inventory", "", "", AllowedCaller.Both)]
+        //[RocketCommandAlias("inv")]
+        //public void Execute(IRocketPlayer caller, string[] command)
+        //{
+        //    foreach (var steamPlayer in Provider.clients)
+        //    {
+        //        UnturnedPlayer player = UnturnedPlayer.FromSteamPlayer(steamPlayer);
+        //        for (byte i = 0; i < 8; i++)
+        //        {
+        //            for (byte j = 0; j < player.Inventory.getItemCount(i); j++)
+        //            {
+        //                ItemJar item = player.Inventory.getItem(i, j);
+        //                Console.WriteLine($"id: {item.item.id}, x:{item.x}, y:{item.y}  size x: {item.size_x}, size y: {item.size_y}, rot: {item.rot}");
+        //            }
+        //        }
+        //    }
+        //}
         static async void WatcherAsync(System.Threading.CancellationToken token)
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
@@ -88,32 +88,31 @@ namespace ItemRestrictorAdvanced
             Provider.onServerShutdown -= OnServerShutdown;
         }
 
-        //[RocketCommand("ss", "", "", AllowedCaller.Console)]
-        //[RocketCommandAlias("ss")]
+        [RocketCommand("ss", "", "", AllowedCaller.Both)]
+        [RocketCommandAlias("ss")]
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            for (byte i = 0; i < 8; i++)
+            {
+                for (byte j = 0; j < ((UnturnedPlayer)caller).Inventory.getItemCount(i); j++)
+                {
+                    Console.WriteLine($"Sorted items: {((UnturnedPlayer)caller).Inventory.getItem(i, j).item.id}, size x: {((UnturnedPlayer)caller).Inventory.getItem(i, j).size_x}, size y: {((UnturnedPlayer)caller).Inventory.getItem(i, j).size_y}, rot: {((UnturnedPlayer)caller).Inventory.getItem(i, j).rot}, x: {((UnturnedPlayer)caller).Inventory.getItem(i, j).x}, y: {((UnturnedPlayer)caller).Inventory.getItem(i, j).y}");
+                }
+            }
+        }
+            //}
 
-        //public void CheckTotalVehicles()
-        //{
-        //    Dictionary<SteamPlayer, ushort> carOwners = new Dictionary<SteamPlayer, ushort>();
-        //    foreach (var steamPlayer in Provider.clients)
-        //    {
-        //    }
-        //    foreach (var carOwner in carOwners)
-        //    {
-        //        Console.WriteLine($"Owner: {carOwner.Key}, cars: {carOwner.Value}");
-        //    }
-
-        //}
-        //private ushort VehiclesCounter(SteamPlayer steamPlayer)
-        //{
-        //    ushort counter = 0;
-        //    foreach (var veh in VehicleManager.vehicles)
-        //    {
-        //        if (veh.isLocked && veh.lockedOwner == steamPlayer.playerID.steamID)
-        //            counter++;
-        //    }
-        //    return counter;
-        //}
-        public void LoadInventoryTo(string path)
+            //private ushort VehiclesCounter(SteamPlayer steamPlayer)
+            //{
+            //    ushort counter = 0;
+            //    foreach (var veh in VehicleManager.vehicles)
+            //    {
+            //        if (veh.isLocked && veh.lockedOwner == steamPlayer.playerID.steamID)
+            //            counter++;
+            //    }
+            //    return counter;
+            //}
+            public void LoadInventoryTo(string path)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
@@ -225,11 +224,11 @@ namespace ItemRestrictorAdvanced
                 //block.readByte();
                 //block.readByte();
                 byte itemCount = block.readByte();
-                if (width == 0 && height == 0)
-                {
-                    index1--;
-                    continue;
-                }
+                //if (width == 0 && height == 0)
+                //{
+                //    pages.Add(new Page(index1--, width, height));
+                //    continue;
+                //}
                 pages.Add(new Page(index1, width, height));
                 Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
                 for (byte index = 0; index < itemCount; index++)
@@ -247,6 +246,7 @@ namespace ItemRestrictorAdvanced
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
                     MyItem myItem = new MyItem(newID, newAmount, newQuality);/*, newState, rot, x, y, index1, width, height);*/
+                    Console.WriteLine($"item: id: {newID}, amt: {newAmount}, qlt: {newQuality}, Page: {counter}");
                     if (HasItem(myItem, myItems))
                         continue;
                     else
@@ -262,7 +262,7 @@ namespace ItemRestrictorAdvanced
         public (bool, List<MyItem>) TryAddItems(string writepath, string readpath, string readpath2)
         {
             Block block = new Block();
-            block.writeByte(PlayerInventory.SAVEDATA_VERSION);
+            block.writeByte(GetPagesCount(readpath2));//how many pages will be
             List<MyItem> myItems;
             using (StreamReader streamReader = new StreamReader(readpath))//SDG.Framework.IO.Deserialization
             {
@@ -289,34 +289,26 @@ namespace ItemRestrictorAdvanced
                 {
                     for (byte j = 0; j < myItems[i].Count - 1; j++)
                     {
-                        myItems.Add(myItems[i]);
+                        myItems.Add(new MyItem(myItems[i].ID, myItems[i].x, myItems[i].Quality, 0, myItems[i].Size_x, myItems[i].Size_y));
                     }
                 }
             }
             myItems.Sort(new MyItemComparer());
-            //foreach (var item in myItems)
-            //{
-            //    Console.WriteLine($"Sorted items: {item.ID}, size x: {item.Size_x}, size y: {item.Size_y}");
-            //}
+            //return (true, null);
             byte pages = GetPagesCount(readpath2);
             for (byte i = 0; i < pages; i++)
             {
                 byte width, height, itemsCount;
                 (width, height) = GetPageSize(readpath2, i);
-                if ((width == 0 && height == 0))
+                if (width == 0 && height == 0)
                 {
-                    block.writeByte(1);
-                    block.writeByte(1);
-                    block.writeByte(1);
+                    Console.WriteLine($"Page: {i} has width and height ZERO");
                     block.writeByte(0);
                     block.writeByte(0);
                     block.writeByte(0);
-                    block.writeUInt16(0);
-                    block.writeByte(0);
-                    block.writeByte(0);
-                    block.writeByteArray(new byte[0]);
                     continue;
                 }
+                    
                 //Console.WriteLine("-------------------");
                 //Console.WriteLine($"Operation on PAGE: {i}, width: {width}, height: {height}");
                 (List<MyItem> selectedItems, List<MyItem> unSelectedItems) = SelectItems(width, height, myItems);
@@ -371,13 +363,13 @@ namespace ItemRestrictorAdvanced
                 }
                 else
                 {
-                    if (FindPlace(ref page, height, width, item.Size_y, item.Size_x, out x, out y))
+                    if (FindPlace(ref page, height, width, item.Size_y, item.Size_x, out byte nx, out byte ny))
                     {
-                        item.X = x;
-                        item.Y = y;
-                        byte temp = item.Size_x;
-                        item.Size_x = item.Size_y;
-                        item.Size_y = temp;
+                        item.X = nx;
+                        item.Y = ny;
+                        //byte temp = item.Size_x;
+                        //item.Size_x = item.Size_y;
+                        //item.Size_y = temp;
                         item.Rot = 1;
                         selectedItems.Add(item);
                     }
@@ -440,12 +432,23 @@ namespace ItemRestrictorAdvanced
             }
             x = 0;
             y = 0;
-            Console.WriteLine("Unexpected error");
-            return false;
+
+            return false;//place not found
         }
         private void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
         {
-            //Console.WriteLine("3. FillPageCells()");
+            Console.WriteLine("------------------------");
+            Console.WriteLine("3. FillPageCells() before");
+            for (byte i = startRowindex; i < (reqHeight + startRowindex); i++)
+            {
+                for (byte j = startIndex; j < (reqWidth + startIndex); j++)
+                {
+                    Console.Write(page[i, j]);
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("------------------------");
+            Console.WriteLine();
             for (byte i = startRowindex; i < (reqHeight + startRowindex); i++)
             {
                 for (byte j = startIndex; j < (reqWidth + startIndex); j++)
@@ -453,6 +456,17 @@ namespace ItemRestrictorAdvanced
                     page[i, j] = false;
                 }
             }
+            Console.WriteLine("------------------------");
+            Console.WriteLine("3. FillPageCells() after");
+            for (byte i = startRowindex; i < (reqHeight + startRowindex); i++)
+            {
+                for (byte j = startIndex; j < (reqWidth + startIndex); j++)
+                {
+                    Console.Write(page[i, j]);
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("------------------------");
         }
         private (bool found, Failure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
         {
@@ -490,6 +504,7 @@ namespace ItemRestrictorAdvanced
             //Console.WriteLine("------------------------------------");
             temp_y = startRowindex;
             temp_x = startIndex;
+
             return (true, 0);
         }
         private bool[,] FillPage(byte width, byte height)

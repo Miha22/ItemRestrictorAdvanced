@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
-    //[JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn)]
     class MyItem
     {
         [JsonProperty]
@@ -15,7 +15,7 @@ namespace ItemRestrictorAdvanced
         public byte x { get; set; }
         [JsonProperty]
         public byte Quality { get; set; }
-        [JsonConverter(typeof(MyConverter))]
+        [JsonConverter(typeof(MyConverter)), JsonProperty]
         public byte[] State { get; set; }
         public byte Rot { get; set; }
         public byte X { get; set; }

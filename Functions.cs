@@ -41,7 +41,7 @@ namespace ItemRestrictorAdvanced
                     fileStream.Write(bytes, 0, size);
                     fileStream.SetLength((long)size);
                     fileStream.Flush();
-                    //fileStream.Close();
+                    fileStream.Close();
                     //fileStream.Dispose();
                 }
             }

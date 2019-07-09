@@ -113,13 +113,13 @@ namespace ItemRestrictorAdvanced
             //    return counter;
             //}
             public void LoadInventoryTo(string path)
-        {
+            {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
                 //string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.json";
                 //string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{directory.Name.Split('_')[0]}.json";
                 //string newPath = path + $@"\{directory.Name.Split('_')[0]}_{PlayerName(directory.Name.Split('_')[0])}.json";
-                string folderForPages = path + $@"\PagesData_DoNotTouch";
+                string folderForPages = path + $@"\Data_DoNotTouch";
                 //DirectoryInfo dir = new DirectoryInfo(folderForPages);
                 //if (!dir.Exists)
                 //    dir.Create();
@@ -131,7 +131,7 @@ namespace ItemRestrictorAdvanced
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
                 string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
-                string pathPages = path + $@"\{dir.Name}\PagesData_{directory.Name.Split('_')[0]}.json";
+                string pathPages = path + $@"\{dir.Name}\Pages_{directory.Name.Split('_')[0]}.json";
 
                 //if (!File.Exists(newPath))
                 //    File.Create(newPath);
@@ -152,9 +152,11 @@ namespace ItemRestrictorAdvanced
                 //new JSONSerializer().serialize<List<MyItem>>(myItems, newPath, false);
                 using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
                 {
-                    JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
-                    new JsonSerializer().Serialize(jsonWriter, (object)myItems);
-                    jsonWriter.Flush();
+                    //JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
+                    //new JsonSerializer().Serialize(jsonWriter, (object)myItems);
+                    //jsonWriter.Flush();
+                    string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
+                    streamWriter.WriteLine(json);
                 }
                 using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
                 {
@@ -245,7 +247,7 @@ namespace ItemRestrictorAdvanced
                     byte newAmount = block.readByte();
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
-                    MyItem myItem = new MyItem(newID, newAmount, newQuality);/*, newState, rot, x, y, index1, width, height);*/
+                    MyItem myItem = new MyItem(newID, newAmount, newQuality, newState);/*, newState, rot, x, y, index1, width, height);*/
                     Console.WriteLine($"item: id: {newID}, amt: {newAmount}, qlt: {newQuality}, Page: {counter}");
                     if (HasItem(myItem, myItems))
                         continue;
@@ -323,13 +325,20 @@ namespace ItemRestrictorAdvanced
                 for (byte j = 0; j < itemsCount; j++)
                 {
                     ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
-                    block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
-                    block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
-                    block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
+                    block.writeByte(itemJar.x);
+                    block.writeByte(itemJar.y);
+                    block.writeByte(itemJar.rot);
+                    block.writeUInt16(itemJar.item.id);
+                    block.writeByte(itemJar.item.amount);
+                    block.writeByte(itemJar.item.quality);
+                    block.writeByteArray(itemJar.item.state);
+                    //block.writeByte(itemJar == null ? (byte)0 : itemJar.x);
+                    //block.writeByte(itemJar == null ? (byte)0 : itemJar.y);
+                    //block.writeByte(itemJar == null ? (byte)0 : itemJar.rot);
+                    //block.writeUInt16(itemJar == null ? (ushort)0 : itemJar.item.id);
+                    //block.writeByte(itemJar == null ? (byte)0 : itemJar.item.amount);
+                    //block.writeByte(itemJar == null ? (byte)0 : itemJar.item.quality);
+                    //block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
                 }
             }
             Functions.WriteBlock(writepath, block);
@@ -551,7 +560,7 @@ namespace ItemRestrictorAdvanced
         {
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i].ID == item.ID && items[i].Quality == item.Quality && items[i].x == item.x)
+                if (items[i].ID == item.ID && items[i].Quality == item.Quality && items[i].x == item.x && items[i].Equals(item))
                 {
                     items[i].Count++;
                     return true;

@@ -1,11 +1,10 @@
 ﻿
 using Newtonsoft.Json;
-using SDG.Unturned;
 using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    //[JsonObject(MemberSerialization.OptIn)]
     class MyItem
     {
         [JsonProperty]
@@ -16,6 +15,7 @@ namespace ItemRestrictorAdvanced
         public byte x { get; set; }
         [JsonProperty]
         public byte Quality { get; set; }
+        [JsonConverter(typeof(MyConverter))]
         public byte[] State { get; set; }
         public byte Rot { get; set; }
         public byte X { get; set; }
@@ -33,13 +33,13 @@ namespace ItemRestrictorAdvanced
         {
             
         }
-        public MyItem(ushort id, byte amount, byte quality)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
+        public MyItem(ushort id, byte amount, byte quality, byte[] state)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
         {
             Count = 1;
             ID = id;
             this.x = amount;
             Quality = quality;
-            //State = state;
+            State = state;
             //Rot = rot;
             //X = x;
             //Y = y;
@@ -59,6 +59,28 @@ namespace ItemRestrictorAdvanced
             Rot = rot;
             Size_x = sizeX;
             Size_y = sizeY;
+            //State = state;
+        }
+        public override bool Equals(object obj)
+        {
+            MyItem myItem = obj as MyItem;
+            if (this.State == new byte[0] && myItem.State == new byte[0])
+                return true;
+            if ((this.State == new byte[0] && myItem.State != new byte[0]) || (this.State != new byte[0] && myItem.State == new byte[0]))
+                return false;
+            System.Console.WriteLine($"state length: {State.Length} : {myItem.State.Length}");
+            //for (byte i = 0; i < 13; i++)
+            //{
+            //    if (this.State[i] != myItem.State[i])
+            //        return false;
+            //}
+            //for (byte i = 13; i < (byte)this.State.Length; i++)
+            //{
+            //    this.State[i] = (State[i] < myItem.State[i]) ? (myItem.State[i]) : (State[i]);
+            //}
+
+
+            return true;
         }
         //private bool HasIndex(ref byte[,] Pages, ushort index)
         //{

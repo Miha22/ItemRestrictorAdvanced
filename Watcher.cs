@@ -77,7 +77,7 @@ namespace ItemRestrictorAdvanced
             else
             {
                 string pathWrite = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat";
-                string pathPages = $@"{e.FullPath.Substring(0, e.FullPath.Length - 23)}\PagesData_DoNotTouch\PagesData_{playerSteamID}.json";
+                string pathPages = $@"{e.FullPath.Substring(0, e.FullPath.Length - 23)}\Data_DoNotTouch\Pages_{playerSteamID}.json";
                 //string pathCached = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\InventoryCACHED.dat";
                 //System.Console.WriteLine("Try add Items is going to be executed!");
                 //FileInfo fileInfo = new FileInfo(pathWrite);

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ItemRestrictorAdvanced
 {
-    enum Failure
+    enum EFailure
     {
         Width = 1,
         Height,

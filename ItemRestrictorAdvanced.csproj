@@ -36,9 +36,10 @@
   <ItemGroup>
     <Compile Include="CommandI.cs" />
     <Compile Include="CommandV.cs" />
-    <Compile Include="Failure.cs" />
+    <Compile Include="EFailure.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Group.cs" />
+    <Compile Include="EIgnore.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="MyConverter.cs" />
     <Compile Include="MyItem.cs" />

@@ -100,29 +100,11 @@ namespace ItemRestrictorAdvanced
                 }
             }
         }
-            //}
-
-            //private ushort VehiclesCounter(SteamPlayer steamPlayer)
-            //{
-            //    ushort counter = 0;
-            //    foreach (var veh in VehicleManager.vehicles)
-            //    {
-            //        if (veh.isLocked && veh.lockedOwner == steamPlayer.playerID.steamID)
-            //            counter++;
-            //    }
-            //    return counter;
-            //}
-            public void LoadInventoryTo(string path)
-            {
+        public void LoadInventoryTo(string path)
+        {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
-                //string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.json";
-                //string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{directory.Name.Split('_')[0]}.json";
-                //string newPath = path + $@"\{directory.Name.Split('_')[0]}_{PlayerName(directory.Name.Split('_')[0])}.json";
                 string folderForPages = path + $@"\Data_DoNotTouch";
-                //DirectoryInfo dir = new DirectoryInfo(folderForPages);
-                //if (!dir.Exists)
-                //    dir.Create();
 
                 if (!System.IO.Directory.Exists(folderForPages))
                     System.IO.Directory.CreateDirectory(folderForPages);
@@ -132,84 +114,28 @@ namespace ItemRestrictorAdvanced
 
                 string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
                 string pathPages = path + $@"\{dir.Name}\Pages_{directory.Name.Split('_')[0]}.json";
-
-                //if (!File.Exists(newPath))
-                //    File.Create(newPath);
-                //FileInfo file = new FileInfo(pathPlayer);
-                //if (!file.Exists)
-                //    file.Create();
-                //if (file.Attributes == FileAttributes.ReadOnly)
-                //    file.Attributes &= ~FileAttributes.ReadOnly;
-                //file = null;
-                //FileInfo file2 = new FileInfo(pathPages);
-                //if (!file2.Exists)
-                //    file2.Create();
-                //if (file2.Attributes == FileAttributes.ReadOnly)
-                //    file2.Attributes &= ~FileAttributes.ReadOnly;
-                //file2 = null;
-
-                (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
-                //new JSONSerializer().serialize<List<MyItem>>(myItems, newPath, false);
-                using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
+                if (!File.Exists(pathPlayer))
                 {
-                    //JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
-                    //new JsonSerializer().Serialize(jsonWriter, (object)myItems);
-                    //jsonWriter.Flush();
-                    string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
-                    streamWriter.WriteLine(json);
+                    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
+                    using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
+                    {
+                        string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
+                        streamWriter.Write(json);
+                    }
                 }
-                using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
+                if (!File.Exists(pathPages))
                 {
-                    JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
-                    new JsonSerializer().Serialize(jsonWriter, (object)pages);
-                    jsonWriter.Flush();
+                    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name, EIgnore.MyItems);
+                    using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
+                    {
+                        JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
+                        new JsonSerializer().Serialize(jsonWriter, (object)pages);
+                        jsonWriter.Flush();
+                    }
                 }
-                //DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(List<MyItem>));
-                //using (FileStream fs = new FileStream(newPath, FileMode.OpenOrCreate))
-                //{
-                //    jsonFormatter.WriteObject(fs, myItems);
-                //}
-
-                //using (FileStream fs = new FileStream("people.json", FileMode.OpenOrCreate))
-                //{
-                //    Person[] newpeople = (Person[])jsonFormatter.ReadObject(fs);
-
-                //    foreach (Person p in newpeople)
-                //    {
-                //        Console.WriteLine("Имя: {0} --- Возраст: {1}", p.Name, p.Age);
-                //    }
-                //}
-
-                //try
-                //{
-                //    string path = $@"..\Players\{directory.Name}\{Provider.map}\Player\Inventory.txt";
-                //    string path2 = $@"..\Players\{directory.Name}\{Provider.map}\Inventory.txt";
-                //    if (!File.Exists(path))
-                //        File.Create(path);
-                //    if (directory.Attributes == FileAttributes.ReadOnly)
-                //        directory.Attributes &= ~FileAttributes.ReadOnly;
-                //    using (StreamWriter sw = new StreamWriter(path, false, System.Text.Encoding.Default))
-                //    {
-                //        //string[] playerID = directory.Name.Split('_');
-                //        List<Item> playerItems = GetPlayerItems(directory.Name);
-                //        foreach (Item item in playerItems)
-                //        {
-                //            //sw.WriteLine($"ID: {item.id}\n Amount: {item.amount}\n Quality: {item.quality}");
-                //            sw.WriteLine($"ID: {item.id}");
-                //            sw.WriteLine($"Amount: {item.state[0]}");
-                //            sw.WriteLine($"x{item.amount}");
-                //            sw.WriteLine($"Quality: {item.quality}");
-                //            sw.WriteLine("-------");
-                //        }
-                //    }
-                //}
-                //catch (Exception e)
-                //{
-                //    Logger.LogError($"{e.Message}\n{e.TargetSite}");
-                //}
             }
         }
-        private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr)//look up a call of GetPlayerItems for "str" for more info
+        private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr, EIgnore ignore = EIgnore.None)//look up a call of GetPlayerItems for "str" for more info
         {
             List<MyItem> myItems = new List<MyItem>();
             List<Page> pages = new List<Page>();
@@ -226,21 +152,31 @@ namespace ItemRestrictorAdvanced
                 //block.readByte();
                 //block.readByte();
                 byte itemCount = block.readByte();
-                //if (width == 0 && height == 0)
-                //{
-                //    pages.Add(new Page(index1--, width, height));
-                //    continue;
-                //}
                 pages.Add(new Page(index1, width, height));
                 Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
+                if (ignore == EIgnore.MyItems)
+                {
+                    for (byte index = 0; index < itemCount; index++)
+                    {
+                        block.readByte();
+                        block.readByte();
+                        block.readByte();
+                        block.readUInt16();
+                        block.readByte();
+                        block.readByte();
+                        block.readByteArray();
+                    }
+                    continue;
+                }
+                    
                 for (byte index = 0; index < itemCount; index++)
                 {
                     byte x = block.readByte();
                     byte y = block.readByte();
-                    byte rot = 0;
-                    if (num1 > 4)
-                        rot = block.readByte();
-                    else
+                    //byte rot = 0;
+                    //if (block.readByte() % 2 != 0)
+                    //    rot = 1;
+                    //else
                         block.readByte();
 
                     ushort newID = block.readUInt16();
@@ -291,7 +227,7 @@ namespace ItemRestrictorAdvanced
                 {
                     for (byte j = 0; j < myItems[i].Count - 1; j++)
                     {
-                        myItems.Add(new MyItem(myItems[i].ID, myItems[i].x, myItems[i].Quality, 0, myItems[i].Size_x, myItems[i].Size_y));
+                        myItems.Add(new MyItem(myItems[i].ID, myItems[i].x, myItems[i].Quality, 0, myItems[i].Size_x, myItems[i].Size_y, myItems[i].State));
                     }
                 }
             }
@@ -324,7 +260,7 @@ namespace ItemRestrictorAdvanced
                 //Console.WriteLine($"For Page: {i}, items count: {itemsCount}");
                 for (byte j = 0; j < itemsCount; j++)
                 {
-                    ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality));
+                    ItemJar itemJar = new ItemJar(selectedItems[j].X, selectedItems[j].Y, selectedItems[j].Rot, new Item(selectedItems[j].ID, selectedItems[j].x, selectedItems[j].Quality, selectedItems[j].State));
                     block.writeByte(itemJar.x);
                     block.writeByte(itemJar.y);
                     block.writeByte(itemJar.rot);
@@ -419,7 +355,7 @@ namespace ItemRestrictorAdvanced
                 for (byte j = 0; j < pageWidth; j++)
                 {
                     //Console.WriteLine($"1. FindTrues()  i = {i} j = {j}");
-                    (bool found, Failure failure) = FindTrues(ref page, pageHeight, pageWidth, i, j, reqWidth, reqHeight, out byte temp_x, out byte temp_y);
+                    (bool found, EFailure failure) = FindTrues(ref page, pageHeight, pageWidth, i, j, reqWidth, reqHeight, out byte temp_x, out byte temp_y);
                     if (found)
                     {
                         //Console.WriteLine("trues found");
@@ -429,9 +365,9 @@ namespace ItemRestrictorAdvanced
 
                         return true;
                     }
-                    else if (failure == Failure.Width)
+                    else if (failure == EFailure.Width)
                         break;
-                    else if (failure == Failure.Height)
+                    else if (failure == EFailure.Height)
                     {
                         x = 0;
                         y = 0;
@@ -477,7 +413,7 @@ namespace ItemRestrictorAdvanced
             }
             Console.WriteLine("------------------------");
         }
-        private (bool found, Failure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
+        private (bool found, EFailure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
         {
         //    Console.WriteLine("2. FindTrues()");
         //    Console.WriteLine($"pageWidth: {pageWidth}, startIndex: {startIndex}, reqWidth: {reqWidth}");
@@ -487,14 +423,14 @@ namespace ItemRestrictorAdvanced
                 temp_x = 0;
                 temp_y = 0;
                 //Console.WriteLine("Width failure!");
-                return (false, Failure.Width);
+                return (false, EFailure.Width);
             }
             if ((pageHeight - startRowindex) < reqHeight)
             {
                 temp_x = 0;
                 temp_y = 0;
                 //Console.WriteLine("Height failure!");
-                return (false, Failure.Height);
+                return (false, EFailure.Height);
             }
 
             for (byte i = startRowindex; i < (reqHeight + startRowindex); i++)
@@ -506,7 +442,7 @@ namespace ItemRestrictorAdvanced
                         temp_x = 0;
                         temp_y = 0;
                         //Console.WriteLine("false found");
-                        return (false, Failure.Occupied);
+                        return (false, EFailure.Occupied);
                     }
                 }
             }

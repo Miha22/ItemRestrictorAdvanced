@@ -39,6 +39,11 @@ namespace ItemRestrictorAdvanced
             ID = id;
             this.x = amount;
             Quality = quality;
+            //State = new byte[state.Length];
+            //for (byte i = 0; i < state.Length; i++)
+            //{
+            //    State[i] = state[i];
+            //}
             State = state;
             //Rot = rot;
             //X = x;
@@ -50,7 +55,7 @@ namespace ItemRestrictorAdvanced
             //Size_x = itemAsset.size_x;
             //Size_y = itemAsset.size_y;
         }
-        public MyItem(ushort id, byte amount, byte quality, byte rot, byte sizeX, byte sizeY)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
+        public MyItem(ushort id, byte amount, byte quality, byte rot, byte sizeX, byte sizeY, byte[] state)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
         {
             Count = 1;
             ID = id;
@@ -59,7 +64,12 @@ namespace ItemRestrictorAdvanced
             Rot = rot;
             Size_x = sizeX;
             Size_y = sizeY;
-            //State = state;
+            //State = new byte[state.Length];
+            //for (byte i = 0; i < state.Length; i++)
+            //{
+            //    State[i] = state[i];
+            //}
+            State = state;
         }
         public override bool Equals(object obj)
         {

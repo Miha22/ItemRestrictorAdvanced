@@ -11,32 +11,37 @@ namespace ItemRestrictorAdvanced
     {
         public override bool CanConvert(Type objectType)
         {
-            return false;
+            return true;
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (reader.TokenType == JsonToken.StartArray)
+            byte[] byteArr = new byte[0];
+
+            while (reader.Read())
             {
-                return serializer.Deserialize(reader, objectType);
+                if (reader.TokenType == JsonToken.EndArray)
+                    break;
+                byte[] tempArr = new byte[byteArr.Length];
+                for (byte j = 0; j < tempArr.Length; j++)
+                    tempArr[j] = byteArr[j];
+                byteArr = new byte[tempArr.Length + 1];
+                for (byte n = 0; n < tempArr.Length; n++)
+                    byteArr[n] = tempArr[n];
+                byteArr[byteArr.Length - 1] = byte.Parse(serializer.Deserialize(reader).ToString());
             }
-            return new byte[] { byte.Parse(reader.Value.ToString()) };
+
+            return byteArr;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            IEnumerable array = (IEnumerable)value;
-            writer.WriteStartObject();
-            //writer.WritePropertyName("Page");
-            //writer.WriteValue("Add");
-            writer.WritePropertyName("Attachments");
-            writer.WriteStartArray();
-            foreach (object item in array)
-            {
-                serializer.Serialize(writer, item);
-            }
-            writer.WriteEndArray();
-            writer.WriteEndObject();
+            byte[] byteArray = value as byte[];
+            string[] strArray = new string[byteArray.Length];
+            for (byte i = 0; i < byteArray.Length; i++)
+                strArray[i] = byteArray[i].ToString();
+
+            serializer.Serialize(writer, strArray);
         }
     }
 }

@@ -114,25 +114,37 @@ namespace ItemRestrictorAdvanced
 
                 string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
                 string pathPages = path + $@"\{dir.Name}\Pages_{directory.Name.Split('_')[0]}.json";
-                if (!File.Exists(pathPlayer))
+                (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
+                using (StreamWriter streamWriter = new StreamWriter(pathPlayer))
                 {
-                    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
-                    using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
-                    {
-                        string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
-                        streamWriter.Write(json);
-                    }
+                    string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
+                    streamWriter.Write(json);
                 }
-                if (!File.Exists(pathPages))
+                using (StreamWriter streamWriter = new StreamWriter(pathPages))
                 {
-                    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name, EIgnore.MyItems);
-                    using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
-                    {
-                        JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
-                        new JsonSerializer().Serialize(jsonWriter, (object)pages);
-                        jsonWriter.Flush();
-                    }
+                    JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
+                    new JsonSerializer().Serialize(jsonWriter, (object)pages);
+                    jsonWriter.Flush();
                 }
+                //if (!File.Exists(pathPlayer))
+                //{
+                //    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
+                //    using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
+                //    {
+                //        string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
+                //        streamWriter.Write(json);
+                //    }
+                //}
+                //if (!File.Exists(pathPages))
+                //{
+                //    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name, EIgnore.MyItems);
+                //    using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
+                //    {
+                //        JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
+                //        new JsonSerializer().Serialize(jsonWriter, (object)pages);
+                //        jsonWriter.Flush();
+                //    }
+                //}
             }
         }
         private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr, EIgnore ignore = EIgnore.None)//look up a call of GetPlayerItems for "str" for more info
@@ -154,20 +166,20 @@ namespace ItemRestrictorAdvanced
                 byte itemCount = block.readByte();
                 pages.Add(new Page(index1, width, height));
                 Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
-                if (ignore == EIgnore.MyItems)
-                {
-                    for (byte index = 0; index < itemCount; index++)
-                    {
-                        block.readByte();
-                        block.readByte();
-                        block.readByte();
-                        block.readUInt16();
-                        block.readByte();
-                        block.readByte();
-                        block.readByteArray();
-                    }
-                    continue;
-                }
+                //if (ignore == EIgnore.MyItems)
+                //{
+                //    for (byte index = 0; index < itemCount; index++)
+                //    {
+                //        block.readByte();
+                //        block.readByte();
+                //        block.readByte();
+                //        block.readUInt16();
+                //        block.readByte();
+                //        block.readByte();
+                //        block.readByteArray();
+                //    }
+                //    continue;
+                //}
                     
                 for (byte index = 0; index < itemCount; index++)
                 {

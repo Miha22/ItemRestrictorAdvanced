@@ -10,12 +10,13 @@ using SDG.Unturned;
 using Rocket.Unturned.Player;
 using Newtonsoft.Json;
 using SDG.Framework.IO.Serialization;
+using UnityEngine;
+using System.Diagnostics;
 
 namespace ItemRestrictorAdvanced
 {
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
-        static string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
         internal static ItemRestrictor Instance;
         public static System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
         System.Threading.CancellationToken token = cts.Token;
@@ -27,6 +28,9 @@ namespace ItemRestrictorAdvanced
 
         protected override void Load()
         {
+            string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
+            //string pathtemp = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\temp";
+            EffectManager.onEffectButtonClicked += OnEffectButtonClicked;
             if (Configuration.Instance.Enabled)
             {
                 Instance = this;
@@ -36,11 +40,17 @@ namespace ItemRestrictorAdvanced
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
+                //if (!System.IO.Directory.Exists(pathtemp))
+                //    System.IO.Directory.CreateDirectory(pathtemp);
+                //DirectoryInfo directoryTemp = new DirectoryInfo(pathtemp);
+                //if (directory.Attributes == FileAttributes.ReadOnly)
+                //    directory.Attributes &= ~FileAttributes.ReadOnly;
+
                 try
                 {
                     LoadInventoryTo(path);
-                    WatcherAsync(token);
-                    Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Yellow);
+                    WatcherAsync(token, path);
+                    Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Cyan);
                 }
                 catch (Exception e)
                 {
@@ -48,14 +58,17 @@ namespace ItemRestrictorAdvanced
                     cts.Cancel();
                     Console.WriteLine();
                 }
-                //create json files for each player from inventory.dat..
             }
             else
             {
-                cts.Cancel();
+                //cts.Cancel();
                 Logger.Log("Plugin is turned off in Configuration, unloading...", ConsoleColor.Cyan);
                 UnloadPlugin();
             }
+        }
+        protected override void Unload()
+        {
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClicked;
         }
         //[RocketCommand("inventory", "", "", AllowedCaller.Both)]
         //[RocketCommandAlias("inv")]
@@ -74,7 +87,7 @@ namespace ItemRestrictorAdvanced
         //        }
         //    }
         //}
-        static async void WatcherAsync(System.Threading.CancellationToken token)
+        static async void WatcherAsync(System.Threading.CancellationToken token, string path)
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
             if (token.IsCancellationRequested)
@@ -84,22 +97,38 @@ namespace ItemRestrictorAdvanced
         }
         public static void OnServerShutdown()
         {
+            //Process.Start(@"C:\Deniel\Desktop\file.txt");
             cts.Cancel();
             Provider.onServerShutdown -= OnServerShutdown;
         }
+        public void OnEffectButtonClicked(Player player, string button)
+        {
+            Console.WriteLine("BUtton Gay executed!");
+        }
 
-        [RocketCommand("ss", "", "", AllowedCaller.Both)]
+        [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]
         [RocketCommandAlias("ss")]
         public void Execute(IRocketPlayer caller, string[] command)
         {
-            for (byte i = 0; i < 8; i++)
-            {
-                for (byte j = 0; j < ((UnturnedPlayer)caller).Inventory.getItemCount(i); j++)
-                {
-                    Console.WriteLine($"Sorted items: {((UnturnedPlayer)caller).Inventory.getItem(i, j).item.id}, size x: {((UnturnedPlayer)caller).Inventory.getItem(i, j).size_x}, size y: {((UnturnedPlayer)caller).Inventory.getItem(i, j).size_y}, rot: {((UnturnedPlayer)caller).Inventory.getItem(i, j).rot}, x: {((UnturnedPlayer)caller).Inventory.getItem(i, j).x}, y: {((UnturnedPlayer)caller).Inventory.getItem(i, j).y}");
-                }
-            }
+            Application.Quit();
+            //for (byte i = 0; i < 8; i++)
+            //{
+            //    for (byte j = 0; j < ((UnturnedPlayer)caller).Inventory.getItemCount(i); j++)
+            //    {
+            //        Console.WriteLine($"Sorted items: {((UnturnedPlayer)caller).Inventory.getItem(i, j).item.id}, size x: {((UnturnedPlayer)caller).Inventory.getItem(i, j).size_x}, size y: {((UnturnedPlayer)caller).Inventory.getItem(i, j).size_y}, rot: {((UnturnedPlayer)caller).Inventory.getItem(i, j).rot}, x: {((UnturnedPlayer)caller).Inventory.getItem(i, j).x}, y: {((UnturnedPlayer)caller).Inventory.getItem(i, j).y}");
+            //    }
+            //}
+            //foreach (var steamPlayer in Provider.clients)
+            //{
+            //    Console.WriteLine("----------------------------");
+            //    Console.WriteLine($"character name: {steamPlayer.playerID.characterName}");
+            //    Console.WriteLine($"nickname name: {steamPlayer.playerID.nickName}");
+            //    Console.WriteLine($"playerName name: {steamPlayer.playerID.playerName}");
+            //    Console.WriteLine($"steamID: {steamPlayer.playerID.steamID.ToString()}");
+            //    Console.WriteLine("----------------------------");
+            //}
         }
+
         public void LoadInventoryTo(string path)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
@@ -236,12 +265,8 @@ namespace ItemRestrictorAdvanced
                 myItems[i].Size_y = itemAsset.size_y;
                 myItems[i].Rot = 0;
                 if (myItems[i].Count > 1)
-                {
                     for (byte j = 0; j < myItems[i].Count - 1; j++)
-                    {
                         myItems.Add(new MyItem(myItems[i].ID, myItems[i].x, myItems[i].Quality, 0, myItems[i].Size_x, myItems[i].Size_y, myItems[i].State));
-                    }
-                }
             }
             myItems.Sort(new MyItemComparer());
             //return (true, null);

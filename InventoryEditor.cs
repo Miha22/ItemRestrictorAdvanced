@@ -18,7 +18,9 @@ namespace ItemRestrictorAdvanced
         {
             UnturnedPlayer playerCaller = (UnturnedPlayer)caller;
             UnturnedPlayer playerCallee = UnturnedPlayer.FromName(command[0]);
-            
+            PlayerClothing clothingBackup = playerCaller.Player.clothing;
+            PlayerInventory inventoryBackup = playerCaller.Player.inventory;
+            //playerCaller.Player.inventory.ask
         }
     }
 }

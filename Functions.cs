@@ -7,65 +7,61 @@ namespace ItemRestrictorAdvanced
     {
         public static void WriteBlock(string path, Block block)
         {
-            writeBlock(ServerSavedata.directory + "/" + Provider.serverID + path, false, block);
+            writeBlock(ServerSavedata.directory + "/" + Provider.serverID + path, block);
         }
-        private static void writeBlock(string path, bool useCloud, Block block)
+        private static void writeBlock(string path, Block block)
         {
-            writeBlockRW(path, useCloud, true, block);
+            writeBlockRW(path, true, block);
         }
-        private static void writeBlockRW(string path, bool useCloud, bool usePath, Block block)
+        private static void writeBlockRW(string path, bool usePath, Block block)
         {
             int size;
             byte[] bytes = block.getBytes(out size);
-            writeBytes(path, useCloud, usePath, bytes, size);
+            writeBytes(path, usePath, bytes, size);
         }
         private static void writeBytes(
           string path,
-          bool useCloud,
           bool usePath,
           byte[] bytes,
           int size)
         {
-            if (useCloud)
+            //if (useCloud)
+            //{
+            //    ReadWrite.cloudFileWrite(path, bytes, size);
+            //}
+            if (usePath)
+                path = ReadWrite.PATH + path;
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            using (FileStream fileStream = new FileStream(path, FileMode.Create))
             {
-                ReadWrite.cloudFileWrite(path, bytes, size);
-            }
-            else
-            {
-                if (usePath)
-                    path = ReadWrite.PATH + path;
-                if (!Directory.Exists(Path.GetDirectoryName(path)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
-                using (FileStream fileStream = new FileStream(path, FileMode.Create))
-                {
-                    fileStream.Write(bytes, 0, size);
-                    fileStream.SetLength((long)size);
-                    fileStream.Flush();
-                    fileStream.Close();
-                    //fileStream.Dispose();
-                }
+                fileStream.Write(bytes, 0, size);
+                fileStream.SetLength((long)size);
+                fileStream.Flush();
+                fileStream.Close();
+                //fileStream.Dispose();
             }
         }
 
         public static Block ReadBlock(string path, byte prefix)
         {
-            return readBlock(ServerSavedata.directory + "/" + Provider.serverID + path, false, prefix);
+            return readBlock(ServerSavedata.directory + "/" + Provider.serverID + path, prefix);
         }
-        private static Block readBlock(string path, bool useCloud, byte prefix)
+        private static Block readBlock(string path, byte prefix)
         {
-            return readBlockRW(path, useCloud, true, prefix);
+            return readBlockRW(path, true, prefix);
         }
-        private static Block readBlockRW(string path, bool useCloud, bool usePath, byte prefix)
+        private static Block readBlockRW(string path, bool usePath, byte prefix)
         {
-            byte[] contents = readBytes(path, useCloud, usePath);
+            byte[] contents = readBytes(path, usePath);
             if (contents == null)
                 return (Block)null;
-            return new Block((int)prefix, contents);
+            return new Block(prefix, contents);
         }
-        private static byte[] readBytes(string path, bool useCloud, bool usePath)
+        private static byte[] readBytes(string path, bool usePath)
         {
-            if (useCloud)
-                return ReadWrite.cloudFileRead(path);
+            //if (useCloud)
+            //    return ReadWrite.cloudFileRead(path);
             if (usePath)
                 path = ReadWrite.PATH + path;
             if (!Directory.Exists(Path.GetDirectoryName(path)))

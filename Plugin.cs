@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 using Rocket.Core.Commands;
 using System.Collections.Generic;
 using SDG.Unturned;
-using Rocket.Unturned.Player;
 using Newtonsoft.Json;
 using SDG.Framework.IO.Serialization;
 using UnityEngine;
-using System.Diagnostics;
 
 namespace ItemRestrictorAdvanced
 {
@@ -29,7 +27,8 @@ namespace ItemRestrictorAdvanced
         protected override void Load()
         {
             string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
-            //string pathtemp = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\temp";
+            string pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
+            string pathtemp = pathPages + @"\Temp";
             EffectManager.onEffectButtonClicked += OnEffectButtonClicked;
             if (Configuration.Instance.Enabled)
             {
@@ -40,16 +39,22 @@ namespace ItemRestrictorAdvanced
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
-                //if (!System.IO.Directory.Exists(pathtemp))
-                //    System.IO.Directory.CreateDirectory(pathtemp);
-                //DirectoryInfo directoryTemp = new DirectoryInfo(pathtemp);
-                //if (directory.Attributes == FileAttributes.ReadOnly)
-                //    directory.Attributes &= ~FileAttributes.ReadOnly;
+                if (!System.IO.Directory.Exists(pathPages))
+                    System.IO.Directory.CreateDirectory(pathPages);
+                DirectoryInfo directoryPages = new DirectoryInfo(pathPages);
+                if (directory.Attributes == FileAttributes.ReadOnly)
+                    directory.Attributes &= ~FileAttributes.ReadOnly;
+
+                if (!System.IO.Directory.Exists(pathtemp))
+                    System.IO.Directory.CreateDirectory(pathtemp);
+                DirectoryInfo directoryTemp = new DirectoryInfo(pathtemp);
+                if (directory.Attributes == FileAttributes.ReadOnly)
+                    directory.Attributes &= ~FileAttributes.ReadOnly;
 
                 try
                 {
-                    LoadInventoryTo(path);
-                    WatcherAsync(token, path);
+                    LoadInventoryTo(path, pathPages);
+                    WatcherAsync(token, path, pathPages);
                     Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Cyan);
                 }
                 catch (Exception e)
@@ -87,12 +92,12 @@ namespace ItemRestrictorAdvanced
         //        }
         //    }
         //}
-        static async void WatcherAsync(System.Threading.CancellationToken token, string path)
+        static async void WatcherAsync(System.Threading.CancellationToken token, string path, string pathPages)
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
             if (token.IsCancellationRequested)
                 return;
-            await Task.Run(()=>new Watcher().Run(path, token));                            // выполняется асинхронно
+            await Task.Run(()=>new Watcher(pathPages).Run(path, token));                            // выполняется асинхронно
             //Console.WriteLine("Конец метода FactorialAsync");  // выполняется синхронно
         }
         public static void OnServerShutdown()
@@ -129,11 +134,11 @@ namespace ItemRestrictorAdvanced
             //}
         }
 
-        public void LoadInventoryTo(string path)
+        public void LoadInventoryTo(string path, string path2)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
-                string folderForPages = path + $@"\Data_DoNotTouch";
+                string folderForPages = path2 + $@"\Pages";
 
                 if (!System.IO.Directory.Exists(folderForPages))
                     System.IO.Directory.CreateDirectory(folderForPages);
@@ -141,15 +146,15 @@ namespace ItemRestrictorAdvanced
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
-                string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
-                string pathPages = path + $@"\{dir.Name}\Pages_{directory.Name.Split('_')[0]}.json";
+                //string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
+                //string pathPages = folderForPages + $@"\{directory.Name.Split('_')[0]}.json";
                 (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
-                using (StreamWriter streamWriter = new StreamWriter(pathPlayer))
+                using (StreamWriter streamWriter = new StreamWriter(path + $@"\{directory.Name.Split('_')[0]}.json"))
                 {
                     string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
                     streamWriter.Write(json);
                 }
-                using (StreamWriter streamWriter = new StreamWriter(pathPages))
+                using (StreamWriter streamWriter = new StreamWriter(folderForPages + $@"\{directory.Name.Split('_')[0]}.json"))
                 {
                     JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
                     new JsonSerializer().Serialize(jsonWriter, (object)pages);
@@ -250,13 +255,13 @@ namespace ItemRestrictorAdvanced
             }
             if (myItems == null)
             {
-                Console.WriteLine("Items is null");
+                Logger.LogError($"Player has no items in path: {readpath}");
                 return (false, null);
             }
-            else
-            {
-                Console.WriteLine($"items count: {myItems.Count}");
-            }
+            //else
+            //{
+            //    Console.WriteLine($"items count: {myItems.Count}");
+            //}
             byte len = (byte)myItems.Count;
             for (byte i = 0; i < len; i++)
             {

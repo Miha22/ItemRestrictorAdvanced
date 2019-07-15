@@ -8,6 +8,11 @@ namespace ItemRestrictorAdvanced
 {
     public class Watcher
     {
+        private string _pathPages;
+        public Watcher(string path)
+        {
+            _pathPages = path;
+        }
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         public void Run(string watchPath, CancellationToken token)
         {
@@ -67,34 +72,14 @@ namespace ItemRestrictorAdvanced
         //File: E:\Program Files (x86)\steam\steamapps\common\Unturned_Server\Servers\server1\Rocket\Plugins\ItemRestrictorAdvanced\Inventories\76561198112559333.json Changed
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            System.Console.WriteLine("OnChange executed!");
+            //System.Console.WriteLine("Try add Items executed! success");
+            //string pathPages = $@"{e.FullPath.Substring(0, e.FullPath.Length - 23)}\Data_DoNotTouch\Pages_{playerSteamID}.json";
+            //string pathPages = $@"{e.FullPath.Substring(0, e.FullPath.Length - 23)}\Data_DoNotTouch\Pages_{playerSteamID}.json";
+            //System.Console.WriteLine("OnChange executed!");
             var (playerSteamID, map) = GetSteamID(e.Name);
             System.Console.WriteLine($"playerSteamID: {playerSteamID}, map: {map}");
-            if (IsPlayerOnline(playerSteamID))
-            {
-                System.Console.WriteLine("Player is online!");
-            }
-            else
-            {
-                string pathWrite = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat";
-                string pathPages = $@"{e.FullPath.Substring(0, e.FullPath.Length - 23)}\Data_DoNotTouch\Pages_{playerSteamID}.json";
-                //string pathCached = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\InventoryCACHED.dat";
-                //System.Console.WriteLine("Try add Items is going to be executed!");
-                //FileInfo fileInfo = new FileInfo(pathWrite);
-                //if (fileInfo.Exists)
-                //{
-                //    fileInfo.CopyTo(pathCached).Delete();
-                //    fileInfo = null;
-                //} Inventory.json
-                //if (ItemRestrictor.Instance.TryAddItems(path, e.FullPath))
-                //    new FileInfo(pathCached).Delete();
-                //else
-                //    new FileInfo(pathCached).MoveTo(path);\
-                (bool flag, List<MyItem> unSelected) = ItemRestrictor.Instance.TryAddItems(pathWrite, e.FullPath, pathPages);
-                //System.Console.WriteLine($"Exists? {File.Exists(pathPages)}");
-                //System.Console.WriteLine(pathPages);
-                System.Console.WriteLine("Try add Items executed! success");
-            }
+            string pathWrite = $@"\Players\{PlayerInPlayersFolder(playerSteamID)}\{map}\Player\Inventory.dat";
+            (bool flag, List<MyItem> unSelected) = ItemRestrictor.Instance.TryAddItems(pathWrite, e.FullPath, _pathPages);
         }
         private (string, string) GetSteamID(string line)
         {

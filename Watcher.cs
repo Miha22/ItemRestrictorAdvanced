@@ -121,6 +121,8 @@ namespace ItemRestrictorAdvanced
             bool[,] page = ItemRestrictor.Instance.FillPage(10, 6);
             foreach (var item in myItems)
             {
+                if ((item.Size_x > 10 && item.Size_y > 6) || (item.Size_x > 6 && item.Size_y > 10))
+                    continue;
                 if (ItemRestrictor.Instance.FindPlace(ref page, 10, 6, item.Size_x, item.Size_y, out byte x, out byte y))
                 {
                     item.X = x;

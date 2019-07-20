@@ -377,7 +377,7 @@ namespace ItemRestrictorAdvanced
             //Console.WriteLine("point 12");
             return (selectedItems, unSelectedItems);
         }
-        public static bool FindPlace(ref bool[,] page, byte pageHeight, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
+        public bool FindPlace(ref bool[,] page, byte pageHeight, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
         {
             //Console.WriteLine();
             //Console.WriteLine();
@@ -422,7 +422,7 @@ namespace ItemRestrictorAdvanced
 
             return false;//place not found
         }
-        public static void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
+        public void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
         {
             Console.WriteLine("------------------------");
             Console.WriteLine("3. FillPageCells() before");
@@ -455,7 +455,7 @@ namespace ItemRestrictorAdvanced
             }
             Console.WriteLine("------------------------");
         }
-        public static (bool found, EFailure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
+        public (bool found, EFailure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
         {
         //    Console.WriteLine("2. FindTrues()");
         //    Console.WriteLine($"pageWidth: {pageWidth}, startIndex: {startIndex}, reqWidth: {reqWidth}");
@@ -494,7 +494,7 @@ namespace ItemRestrictorAdvanced
 
             return (true, 0);
         }
-        public static bool[,] FillPage(byte width, byte height)
+        public bool[,] FillPage(byte width, byte height)
         {
             bool[,] page = new bool[height, width];
             for (byte i = 0; i < height; i++)

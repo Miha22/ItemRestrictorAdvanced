@@ -28,7 +28,7 @@ namespace ItemRestrictorAdvanced
         {
             string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
             string pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
-            string pathtemp = pathPages + @"\Temp";
+            string pathTemp = pathPages + @"\Temp";
             EffectManager.onEffectButtonClicked += OnEffectButtonClicked;
             if (Configuration.Instance.Enabled)
             {
@@ -45,16 +45,16 @@ namespace ItemRestrictorAdvanced
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
-                if (!System.IO.Directory.Exists(pathtemp))
-                    System.IO.Directory.CreateDirectory(pathtemp);
-                DirectoryInfo directoryTemp = new DirectoryInfo(pathtemp);
+                if (!System.IO.Directory.Exists(pathTemp))
+                    System.IO.Directory.CreateDirectory(pathTemp);
+                DirectoryInfo directoryTemp = new DirectoryInfo(pathTemp);
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
                 try
                 {
                     LoadInventoryTo(path, pathPages);
-                    WatcherAsync(token, path, pathPages);
+                    WatcherAsync(token, path, pathPages, pathTemp);
                     Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Cyan);
                 }
                 catch (Exception e)
@@ -92,12 +92,12 @@ namespace ItemRestrictorAdvanced
         //        }
         //    }
         //}
-        static async void WatcherAsync(System.Threading.CancellationToken token, string path, string pathPages)
+        static async void WatcherAsync(System.Threading.CancellationToken token, string path, string pathPages, string pathTemp)
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
             if (token.IsCancellationRequested)
                 return;
-            await Task.Run(()=>new Watcher(pathPages).Run(path, token));                            // выполняется асинхронно
+            await Task.Run(()=>new Watcher(pathPages + @"\Pages", pathTemp).Run(path, token));                            // выполняется асинхронно
             //Console.WriteLine("Конец метода FactorialAsync");  // выполняется синхронно
         }
         public static void OnServerShutdown()
@@ -282,7 +282,7 @@ namespace ItemRestrictorAdvanced
                 (width, height) = GetPageSize(readpath2, i);
                 if (width == 0 && height == 0)
                 {
-                    Console.WriteLine($"Page: {i} has width and height ZERO");
+                    //Console.WriteLine($"Page: {i} has width and height ZERO");
                     block.writeByte(0);
                     block.writeByte(0);
                     block.writeByte(0);
@@ -377,7 +377,7 @@ namespace ItemRestrictorAdvanced
             //Console.WriteLine("point 12");
             return (selectedItems, unSelectedItems);
         }
-        private bool FindPlace(ref bool[,] page, byte pageHeight, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
+        public static bool FindPlace(ref bool[,] page, byte pageHeight, byte pageWidth, byte reqWidth, byte reqHeight, out byte x, out byte y)//request > 1
         {
             //Console.WriteLine();
             //Console.WriteLine();
@@ -422,7 +422,7 @@ namespace ItemRestrictorAdvanced
 
             return false;//place not found
         }
-        private void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
+        public static void FillPageCells(ref bool[,] page, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight)
         {
             Console.WriteLine("------------------------");
             Console.WriteLine("3. FillPageCells() before");
@@ -455,7 +455,7 @@ namespace ItemRestrictorAdvanced
             }
             Console.WriteLine("------------------------");
         }
-        private (bool found, EFailure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
+        public static (bool found, EFailure failure) FindTrues(ref bool[,] page, byte pageHeight, byte pageWidth, byte startRowindex, byte startIndex, byte reqWidth, byte reqHeight, out byte temp_x, out byte temp_y)
         {
         //    Console.WriteLine("2. FindTrues()");
         //    Console.WriteLine($"pageWidth: {pageWidth}, startIndex: {startIndex}, reqWidth: {reqWidth}");
@@ -494,7 +494,7 @@ namespace ItemRestrictorAdvanced
 
             return (true, 0);
         }
-        private bool[,] FillPage(byte width, byte height)
+        public static bool[,] FillPage(byte width, byte height)
         {
             bool[,] page = new bool[height, width];
             for (byte i = 0; i < height; i++)

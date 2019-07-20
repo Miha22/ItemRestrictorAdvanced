@@ -35,15 +35,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandI.cs" />
-    <Compile Include="CommandPlayers.cs" />
+    <Compile Include="CommandGetInventory.cs" />
     <Compile Include="CommandV.cs" />
     <Compile Include="EFailure.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="EIgnore.cs" />
-    <Compile Include="InventoryEditor.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="MyConverter.cs" />
+    <Compile Include="MyEffectManager.cs" />
     <Compile Include="MyItem.cs" />
     <Compile Include="MyItemsPage.cs" />
     <Compile Include="Page.cs" />

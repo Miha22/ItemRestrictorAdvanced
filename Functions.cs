@@ -7,21 +7,12 @@ namespace ItemRestrictorAdvanced
     {
         public static void WriteBlock(string path, Block block)
         {
-            writeBlock(ServerSavedata.directory + "/" + Provider.serverID + path, block);
-        }
-        private static void writeBlock(string path, Block block)
-        {
-            writeBlockRW(path, true, block);
-        }
-        private static void writeBlockRW(string path, bool usePath, Block block)
-        {
             int size;
             byte[] bytes = block.getBytes(out size);
-            writeBytes(path, usePath, bytes, size);
+            writeBytes(path, bytes, size);
         }
         private static void writeBytes(
           string path,
-          bool usePath,
           byte[] bytes,
           int size)
         {
@@ -29,8 +20,7 @@ namespace ItemRestrictorAdvanced
             //{
             //    ReadWrite.cloudFileWrite(path, bytes, size);
             //}
-            if (usePath)
-                path = ReadWrite.PATH + path;
+            //path = ReadWrite.PATH + path;
             if (!Directory.Exists(Path.GetDirectoryName(path)))
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             using (FileStream fileStream = new FileStream(path, FileMode.Create))

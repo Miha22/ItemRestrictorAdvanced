@@ -15,9 +15,9 @@ namespace ItemRestrictorAdvanced
 {
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
-        internal static ItemRestrictor Instance;
+        public static ItemRestrictor Instance;
         public static System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
-        System.Threading.CancellationToken token = cts.Token;
+        public static System.Threading.CancellationToken token = cts.Token;
 
         public ItemRestrictor()
         {
@@ -26,6 +26,7 @@ namespace ItemRestrictorAdvanced
 
         protected override void Load()
         {
+            new Class().Start();
             string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
             string pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
             string pathTemp = pathPages + @"\Temp";

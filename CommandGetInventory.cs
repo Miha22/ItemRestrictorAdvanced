@@ -18,8 +18,10 @@ namespace ItemRestrictorAdvanced
         public void Execute(IRocketPlayer caller, string[] command)
         {
             CSteamID steamID = ((UnturnedPlayer)caller).CSteamID;
+            //MyEffectManager.tellUIEffectParams(steamID, 8100, 231, "nelson - 0", "nolson - 1", "lolson - 2", "nullson - 3", "nullson - 4");
+            //EffectManager.createAndFormatUIEffect()
             System.Console.WriteLine("/gi executed!");
-            MyEffectManager.sendUIEffect(8100, 12312, steamID, false, "nelson - 0", "nolson - 1", "lolson - 2", "nullson - 3", "nullson - 4");
+            MyEffectManager.sendUIEffect(8100, 12312, steamID, false, "0nelson - 0", "1nolson - 1", "2lolson - 2", "3nullson - 3", "4nillson - 4");
             //System.Console.WriteLine($"SteamChannelMethods: ");
             //EffectManager.createAndFormatUIEffect(8100, 231, "nelson", "nolson", "lolson", "nullson", "nelsing", "nelson sexton", "sexy nelson", "nelson sex", "nelson gay", $"Players here: {Provider.clients.Count.ToString()}", ((UnturnedPlayer)caller).CSteamID.ToString(), caller.DisplayName);
             //MyEffectManager.tellUIEffectParamsArgs(((UnturnedPlayer)caller).CSteamID, 8100, 12333, "nelson", "nolson", "lolson", "nullson", "nelsing", "nelson sexton", "sexy nelson", "nelson sex", "nelson gay", $"Players here: {Provider.clients.Count.ToString()}", ((UnturnedPlayer)caller).CSteamID.ToString(), caller.DisplayName);

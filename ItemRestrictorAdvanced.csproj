@@ -51,6 +51,7 @@
     <Compile Include="PluginConfiguration.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SteamChannel.cs" />
     <Compile Include="Vehicle.cs" />
     <Compile Include="Watcher.cs" />
   </ItemGroup>

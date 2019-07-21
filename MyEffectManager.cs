@@ -21,12 +21,12 @@ namespace ItemRestrictorAdvanced
             foreach (var typ in parameters)
                 typesList.Add(typ.ParameterType);
             Type[] types = typesList.ToArray();
-            channel.calls[10] = new SteamChannelMethod(component, method, types, channel.calls[131].attribute);
+            channel.calls[132] = new SteamChannelMethod(component, method, types, channel.calls[131].attribute);
             //channel.build();
-            //Console.WriteLine("CALLS---------------------------------------");
-            for (byte i = 0; i < channel.calls.Length; i++)
+            Console.WriteLine("CALLS-IN-----Class---------------------------------");
+            for (byte i = 0; i < EffectManager.instance.channel.calls.Length; i++)
             {
-                Console.WriteLine($"{i}. {channel.calls[i].method.Name}");
+                Console.WriteLine($"{i}. {EffectManager.instance.channel.calls[i].method.Name}");
             }
 
             //foreach (var call in EffectManager.instance.channel.calls)
@@ -50,13 +50,31 @@ namespace ItemRestrictorAdvanced
     }
     class MyEffectManager : EffectManager
     {
-        public static void sendUIEffect(ushort id, short key, CSteamID steamID, bool reliable, params string[] arg)
+        public void sendUIEffect(ushort id, short key, CSteamID steamID, bool reliable, params string[] arg)
         {
             object[] newArgs = new object[arg.Length + 2];
             newArgs[0] = id;
             newArgs[1] = key;
             for (byte i = 2; i < newArgs.Length; i++)
                 newArgs[i] = arg[i-2];
+            Console.WriteLine("CALLS-IN-----MyEffectManager---------------------------------");
+            for (byte i = 0; i < EffectManager.instance.channel.calls.Length; i++)
+            {
+                Console.WriteLine($"{i}. {EffectManager.instance.channel.calls[i].method.Name}");
+            }
+
+            SteamChannel channel = instance.channel;
+            Component component = channel.calls[131].component;
+            Type type = typeof(MyEffectManager);
+            MethodInfo method = type.GetMethod("tellUIEffectParams");
+            //channel.calls[131].types
+            ParameterInfo[] parameters = method.GetParameters();
+            List<Type> typesList = new List<Type>();
+            foreach (var typ in parameters)
+                typesList.Add(typ.ParameterType);
+            Type[] types = typesList.ToArray();
+            channel.calls[132] = new SteamChannelMethod(component, method, types, channel.calls[131].attribute);
+
             //send("tellUIEffect4Args", steamID, (ESteamPacket) (!reliable ? 16 : 15), (object) id, (object) key, (object) arg0, (object) arg1, (object) arg2, (object) arg3);
             instance.channel.send("tellUIEffectParams", steamID, (ESteamPacket)(!reliable ? 16 : 15), newArgs);
         }

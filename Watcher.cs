@@ -111,7 +111,7 @@ namespace ItemRestrictorAdvanced
                         block.writeByteArray(itemJar.item.state);
                     }
                 }
-                Functions.WriteBlock(_pathTemp + $@"\{playerSteamID}.json", block);
+                Functions.WriteBlock(_pathTemp + $@"\{playerSteamID}.dat", block);
             }
         }
         private (List<MyItem> selected, List<MyItem> unselected) TryAddItems(List<MyItem> myItems)

@@ -18,17 +18,16 @@ namespace ItemRestrictorAdvanced
         public void Execute(IRocketPlayer caller, string[] command)
         {
             CSteamID steamID = ((UnturnedPlayer)caller).CSteamID;
-            //MyEffectManager.tellUIEffectParams(steamID, 8100, 231, "nelson - 0", "nolson - 1", "lolson - 2", "nullson - 3", "nullson - 4");
-            //EffectManager.createAndFormatUIEffect()
+            EffectManager.sendUIEffect(8100, 22, steamID, false);
+            for (byte i = 0; i < 23; i++)
+            {
+                EffectManager.sendUIEffectText(22, steamID, false, $"text{i}", "someTextThere");
+            }
+            EffectManager.sendUIEffectText(22, steamID, false, $"text{23}", "");
+            //new MyEffectManager().sendUIEffect(8100, 1231, steamID, false, "0nelson - 0", "1nolson - 1", "2lolson - 2", "3nullson - 3", "4nillson - 4");
             System.Console.WriteLine("/gi executed!");
-            new MyEffectManager().sendUIEffect(8100, 1231, steamID, false, "0nelson - 0", "1nolson - 1", "2lolson - 2", "3nullson - 3", "4nillson - 4");
-            //System.Console.WriteLine($"SteamChannelMethods: ");
-            //EffectManager.createAndFormatUIEffect(8100, 231, "nelson", "nolson", "lolson", "nullson", "nelsing", "nelson sexton", "sexy nelson", "nelson sex", "nelson gay", $"Players here: {Provider.clients.Count.ToString()}", ((UnturnedPlayer)caller).CSteamID.ToString(), caller.DisplayName);
-            //MyEffectManager.tellUIEffectParamsArgs(((UnturnedPlayer)caller).CSteamID, 8100, 12333, "nelson", "nolson", "lolson", "nullson", "nelsing", "nelson sexton", "sexy nelson", "nelson sex", "nelson gay", $"Players here: {Provider.clients.Count.ToString()}", ((UnturnedPlayer)caller).CSteamID.ToString(), caller.DisplayName);
-            //EffectManager.createAndFormatUIEffect(8100, 231, (object)"nelson");
-            //EffectManager.sendUIEffect(8100, 1233, ((UnturnedPlayer)caller).CSteamID, false, "neson gay");
-            //EffectManager.createUIEffect(8100, 21232); false,
-            //EffectManager.sendUIEffectText(123, steamID, false, "childName", "Some text here and again some text more and more");
         }
     }
 }
+//Effect ID is the id parameter, key is an optional instance identifier for modifying instances of an effect, 
+//and child name is the unity name of a GameObject with a Text component.

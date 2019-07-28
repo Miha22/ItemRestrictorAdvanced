@@ -139,6 +139,17 @@ namespace ItemRestrictorAdvanced
             UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromName(targetPlayer);
             EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
             EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
+            List<MyItem> myItems = new List<MyItem>();
+            foreach (var items in unturnedPlayerTarget.Inventory.items)
+            {
+                foreach (var item in items.items)
+                {
+                    if (HasItem(myItem, myItems))
+                        continue;
+                    else
+                        myItems.Add(myItem);
+                }
+            }
         }
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]
@@ -179,6 +190,8 @@ namespace ItemRestrictorAdvanced
                 //string pathPlayer = path + $@"\{directory.Name.Split('_')[0]}.json";
                 //string pathPages = folderForPages + $@"\{directory.Name.Split('_')[0]}.json";
                 (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
+                if (myItems == null || pages == null)
+                    break;
                 using (StreamWriter streamWriter = new StreamWriter(path + $@"\{directory.Name.Split('_')[0]}.json"))
                 {
                     string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
@@ -198,9 +211,7 @@ namespace ItemRestrictorAdvanced
             List<Page> pages = new List<Page>();
             Block block = ServerSavedata.readBlock("/Players/" + steamIdstr + "/" + Provider.map + "/Player/Inventory.dat", 0);
             if (block == null)
-                System.Console.WriteLine("Player has no items");
-            else
-                System.Console.WriteLine("Player has items");
+                return (null, null);
             byte num1 = block.readByte();//BUFFER_SIZE
             for (byte index1 = 0, counter = 0; counter < PlayerInventory.PAGES - 1; index1++, counter++)
             {
@@ -210,7 +221,7 @@ namespace ItemRestrictorAdvanced
                 //block.readByte();
                 byte itemCount = block.readByte();
                 pages.Add(new Page(index1, width, height));
-                Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
+                //Console.WriteLine($"Page: {index1}, width: {width}, height: {height}, items on page: {itemCount}");
                 //if (ignore == EIgnore.MyItems)
                 //{
                 //    for (byte index = 0; index < itemCount; index++)
@@ -241,7 +252,7 @@ namespace ItemRestrictorAdvanced
                     byte newQuality = block.readByte();
                     byte[] newState = block.readByteArray();
                     MyItem myItem = new MyItem(newID, newAmount, newQuality, newState);/*, newState, rot, x, y, index1, width, height);*/
-                    Console.WriteLine($"item: id: {newID}, amt: {newAmount}, qlt: {newQuality}, Page: {counter}");
+                    //Console.WriteLine($"item: id: {newID}, amt: {newAmount}, qlt: {newQuality}, Page: {counter}");
                     if (HasItem(myItem, myItems))
                         continue;
                     else

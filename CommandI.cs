@@ -37,7 +37,7 @@ namespace ItemRestrictorAdvanced
             //UnturnedChat.Say("Your groups: " + string.Join(", ", R.Permissions.GetGroups(caller, true).Select(g => g.Id).ToArray()));
             if (command.Length == 0 || command.Length > 2)
             {
-                UnturnedChat.Say((IRocketPlayer)player, U.Translate("command_generic_invalid_parameter"));
+                UnturnedChat.Say(player, U.Translate("command_generic_invalid_parameter"));
                 throw new WrongUsageOfCommandException(caller, (IRocketCommand)this);
             }
             //if(ItemRestrictor._instance.Configuration.Instance.Groups.Contains())
@@ -51,8 +51,8 @@ namespace ItemRestrictorAdvanced
                     result1 = itemAsset.id;
                 if (string.IsNullOrEmpty(itemString.Trim()) || result1 == (ushort)0)
                 {
-                    UnturnedChat.Say((IRocketPlayer)player, U.Translate("command_generic_invalid_parameter"));
-                    throw new WrongUsageOfCommandException(caller, (IRocketCommand)this);
+                    UnturnedChat.Say(player, U.Translate("command_generic_invalid_parameter"));
+                    throw new WrongUsageOfCommandException(caller, this);
                 }
             }
 

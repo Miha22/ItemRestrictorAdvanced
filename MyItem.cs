@@ -74,23 +74,15 @@ namespace ItemRestrictorAdvanced
         public override bool Equals(object obj)
         {
             MyItem myItem = obj as MyItem;
-            if (this.State == new byte[0] && myItem.State == new byte[0])
+            if (this.State == null)
+                this.State = new byte[0];
+            if (myItem.State == null)
+                myItem.State = new byte[0];
+
+            if (this.State.Length == 0 && myItem.State.Length == 0)
                 return true;
-            if ((this.State == new byte[0] && myItem.State != new byte[0]) || (this.State != new byte[0] && myItem.State == new byte[0]))
+            else
                 return false;
-            System.Console.WriteLine($"state length: {State.Length} : {myItem.State.Length}");
-            //for (byte i = 0; i < 13; i++)
-            //{
-            //    if (this.State[i] != myItem.State[i])
-            //        return false;
-            //}
-            //for (byte i = 13; i < (byte)this.State.Length; i++)
-            //{
-            //    this.State[i] = (State[i] < myItem.State[i]) ? (myItem.State[i]) : (State[i]);
-            //}
-
-
-            return true;
         }
         //private bool HasIndex(ref byte[,] Pages, ushort index)
         //{

@@ -13,27 +13,36 @@ using UnityEngine;
 
 namespace ItemRestrictorAdvanced
 {
+    delegate void Method(Player player);
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
         public static ItemRestrictor Instance;
-        public static System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
-        public static System.Threading.CancellationToken token = cts.Token;
-
-        public ItemRestrictor()
-        {
-            Provider.onServerShutdown += OnServerShutdown;
-        }
+        public System.Threading.CancellationTokenSource cts;
+        public System.Threading.CancellationToken token;
+        //public event ClickedButtonHandler MethodCall;
+        private Dictionary<string, Method> buttonAction;
 
         protected override void Load()
         {
-            new Class().Start();
-            string path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
-            string pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
-            string pathTemp = pathPages + @"\Temp";
-            EffectManager.onEffectButtonClicked += OnEffectButtonClicked;
+            string path;
+            string pathPages;
+            string pathTemp;
+            
             if (Configuration.Instance.Enabled)
             {
                 Instance = this;
+                cts = new System.Threading.CancellationTokenSource();
+                token = cts.Token;
+                buttonAction = new Dictionary<string, Method>();
+                buttonAction.Add("buttonExit", QuitUI);
+                buttonAction.Add("text", ClickUI);
+
+                Provider.onServerShutdown += OnServerShutdown;
+                EffectManager.onEffectTextCommitted += OnEffectButtonClicked;
+                path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
+                pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
+                pathTemp = pathPages + @"\Temp";
+
                 if (!System.IO.Directory.Exists(path))
                     System.IO.Directory.CreateDirectory(path);
                 DirectoryInfo directory = new DirectoryInfo(path);
@@ -52,18 +61,9 @@ namespace ItemRestrictorAdvanced
                 if (directory.Attributes == FileAttributes.ReadOnly)
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
-                try
-                {
-                    LoadInventoryTo(path, pathPages);
-                    WatcherAsync(token, path, pathPages, pathTemp);
-                    Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Cyan);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogException(e, $"EXCEPTION MESSAGE: {e.Message} \n EXCEPTION TargetSite: {e.TargetSite} \n EXCEPTION StackTrace {e.StackTrace}");
-                    cts.Cancel();
-                    Console.WriteLine();
-                }
+                LoadInventoryTo(path, pathPages);
+                WatcherAsync(token, path, pathPages, pathTemp);
+                Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Cyan);
             }
             else
             {
@@ -74,7 +74,8 @@ namespace ItemRestrictorAdvanced
         }
         protected override void Unload()
         {
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClicked;
+            cts.Cancel();
+            EffectManager.onEffectTextCommitted -= OnEffectButtonClicked;
         }
         //[RocketCommand("inventory", "", "", AllowedCaller.Both)]
         //[RocketCommandAlias("inv")]
@@ -98,18 +99,28 @@ namespace ItemRestrictorAdvanced
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
             if (token.IsCancellationRequested)
                 return;
-            await Task.Run(()=>new Watcher(pathPages + @"\Pages", pathTemp).Run(path, token));                            // выполняется асинхронно
+            await Task.Run(()=>new Watcher(pathPages + @"\Pages", pathTemp).Run(path, token)); // выполняется асинхронно
             //Console.WriteLine("Конец метода FactorialAsync");  // выполняется синхронно
         }
-        public static void OnServerShutdown()
+        public void OnServerShutdown()
         {
-            //Process.Start(@"C:\Deniel\Desktop\file.txt");
+            //Process.Start(@"C:\Deniel\Desktop\прочее\file.txt");
             cts.Cancel();
             Provider.onServerShutdown -= OnServerShutdown;
         }
-        public void OnEffectButtonClicked(Player player, string button)
+        public void OnEffectButtonClicked(Player player, string buttonName, string text)
         {
-            Console.WriteLine("BUtton Gay executed!");
+            
+        }
+
+        private void QuitUI(Player player)
+        {
+            EffectManager.askEffectClearByID(8100, Rocket.Unturned.Player.UnturnedPlayer.FromPlayer(player).CSteamID);
+            player.serversideSetPluginModal(false);
+        }
+        private void ClickUI(Player player)
+        {
+
         }
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]
@@ -161,25 +172,6 @@ namespace ItemRestrictorAdvanced
                     new JsonSerializer().Serialize(jsonWriter, (object)pages);
                     jsonWriter.Flush();
                 }
-                //if (!File.Exists(pathPlayer))
-                //{
-                //    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name);
-                //    using (StreamWriter streamWriter = new StreamWriter(pathPlayer))//SDG.Framework.IO.Serialization
-                //    {
-                //        string json = JsonConvert.SerializeObject((object)myItems, Formatting.Indented);
-                //        streamWriter.Write(json);
-                //    }
-                //}
-                //if (!File.Exists(pathPages))
-                //{
-                //    (List<MyItem> myItems, List<Page> pages) = GetPlayerItems(directory.Name, EIgnore.MyItems);
-                //    using (StreamWriter streamWriter = new StreamWriter(pathPages))//SDG.Framework.IO.Serialization
-                //    {
-                //        JsonWriter jsonWriter = (JsonWriter)new JsonTextWriterFormatted((TextWriter)streamWriter);
-                //        new JsonSerializer().Serialize(jsonWriter, (object)pages);
-                //        jsonWriter.Flush();
-                //    }
-                //}
             }
         }
         private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr, EIgnore ignore = EIgnore.None)//look up a call of GetPlayerItems for "str" for more info

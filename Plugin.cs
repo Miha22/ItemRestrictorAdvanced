@@ -110,7 +110,19 @@ namespace ItemRestrictorAdvanced
         }
         public void OnEffectButtonClicked(Player player, string buttonName, string text)
         {
-            
+            if (buttonName != "buttonExit")
+                buttonName = "text";
+
+            foreach (var pair in buttonAction)
+            {
+                if (pair.Key == buttonName)
+                {
+                    pair.Value.Invoke(player);
+                    return;
+                }
+            }
+
+            Logger.LogException(new MissingMethodException("Internal exception: a method is missing in Dictionary or button name mismatched."));
         }
 
         private void QuitUI(Player player)

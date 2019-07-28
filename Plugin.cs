@@ -10,10 +10,11 @@ using SDG.Unturned;
 using Newtonsoft.Json;
 using SDG.Framework.IO.Serialization;
 using UnityEngine;
+using Rocket.Unturned.Player;
 
 namespace ItemRestrictorAdvanced
 {
-    delegate void Method(Player player);
+    delegate void Method(Player player, string text);
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
         public static ItemRestrictor Instance;
@@ -108,31 +109,36 @@ namespace ItemRestrictorAdvanced
             cts.Cancel();
             Provider.onServerShutdown -= OnServerShutdown;
         }
-        public void OnEffectButtonClicked(Player player, string buttonName, string text)
+        public void OnEffectButtonClicked(Player callerPlayer, string buttonName, string buttonPlayerName)
         {
-            if (buttonName != "buttonExit")
+            if (buttonPlayerName == "")
+                return;
+
+            if (buttonName == buttonName.Substring(0, 4))
                 buttonName = "text";
 
             foreach (var pair in buttonAction)
             {
                 if (pair.Key == buttonName)
                 {
-                    pair.Value.Invoke(player);
+                    pair.Value.Invoke(callerPlayer, buttonPlayerName);
                     return;
                 }
             }
 
-            Logger.LogException(new MissingMethodException("Internal exception: a method is missing in Dictionary or button name mismatched."));
+            Logger.LogException(new MissingMethodException("Internal exception: a method is missing in Dictionary or button name mismatched. \n"));
         }
 
-        private void QuitUI(Player player)
+        private void QuitUI(Player callerPlayer, string targetPlayer)
         {
-            EffectManager.askEffectClearByID(8100, Rocket.Unturned.Player.UnturnedPlayer.FromPlayer(player).CSteamID);
-            player.serversideSetPluginModal(false);
+            EffectManager.askEffectClearByID(8100, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
+            callerPlayer.serversideSetPluginModal(false);
         }
-        private void ClickUI(Player player)
+        private void ClickUI(Player callerPlayer, string targetPlayer)
         {
-
+            UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromName(targetPlayer);
+            EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
+            EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
         }
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]

@@ -28,7 +28,7 @@ namespace ItemRestrictorAdvanced
                 EffectManager.sendUIEffectText(22, player.CSteamID, false, $"text{i}", $"{steamPlayers[i].playerID.characterName}");
             }
             player.Player.serversideSetPluginModal(true);
-            System.Console.WriteLine($"/gi executed by {player.CharacterName}");
+            System.Console.WriteLine($"/gi executed");
         }
     }
     public class CommandInventory : IRocketCommand

@@ -126,7 +126,7 @@ namespace ItemRestrictorAdvanced
                 }
             }
 
-            Logger.LogException(new MissingMethodException("Internal exception: a method is missing in Dictionary or button name mismatched. \n"));
+            Logger.LogException(new MissingMethodException("Internal exception: Missing Method: a method is missing in Dictionary or button name mismatched. \n"));
         }
 
         private void QuitUI(Player callerPlayer, string targetPlayer)
@@ -137,13 +137,20 @@ namespace ItemRestrictorAdvanced
         private void ClickUI(Player callerPlayer, string targetPlayer)
         {
             UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromName(targetPlayer);
+            if(unturnedPlayerTarget == null)
+            {
+                Logger.LogException(new Exception($"Global exception: Player not found: {targetPlayer} has just left the server.")); //make then a write to Inventory.dat (to do)
+                return;
+            }
             EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
             EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
+            //EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false)
             List<MyItem> myItems = new List<MyItem>();
             foreach (var items in unturnedPlayerTarget.Inventory.items)
             {
                 foreach (var item in items.items)
                 {
+                    MyItem myItem = new MyItem(item.item.id, item.item.amount, item.item.quality, item.item.state);
                     if (HasItem(myItem, myItems))
                         continue;
                     else
@@ -560,7 +567,7 @@ namespace ItemRestrictorAdvanced
         {
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i].ID == item.ID && items[i].Quality == item.Quality && items[i].x == item.x && items[i].Equals(item))
+                if (items[i].Equals(item))
                 {
                     items[i].Count++;
                     return true;

@@ -74,12 +74,13 @@ namespace ItemRestrictorAdvanced
         public override bool Equals(object obj)
         {
             MyItem myItem = obj as MyItem;
+
             if (this.State == null)
                 this.State = new byte[0];
             if (myItem.State == null)
                 myItem.State = new byte[0];
 
-            if (this.State.Length == 0 && myItem.State.Length == 0)
+            if ((this.State.Length == 0 && myItem.State.Length == 0) && (this.ID == myItem.ID) && (this.Quality == myItem.Quality) && (this.x == myItem.x))
                 return true;
             else
                 return false;

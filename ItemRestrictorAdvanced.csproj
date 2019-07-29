@@ -35,9 +35,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Block.cs" />
+    <Compile Include="CommandCloseGetInventory.cs" />
     <Compile Include="CommandI.cs" />
     <Compile Include="CommandGetInventory.cs" />
     <Compile Include="CommandV.cs" />
+    <Compile Include="ECharName.cs" />
     <Compile Include="EFailure.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Group.cs" />
@@ -53,6 +55,7 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamChannel.cs" />
+    <Compile Include="SteamPlayerCompaper.cs" />
     <Compile Include="Vehicle.cs" />
     <Compile Include="Watcher.cs" />
   </ItemGroup>

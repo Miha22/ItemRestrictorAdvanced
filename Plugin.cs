@@ -16,9 +16,11 @@ using System.Globalization;
 namespace ItemRestrictorAdvanced
 {
     delegate void Method(Player player, string text);
+
     class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
         public static ItemRestrictor Instance;
+        //public static SteamPlayer[] PlayersOnline; //On the momment when /gi is execued
         public System.Threading.CancellationTokenSource cts;
         public System.Threading.CancellationToken token;
         //public event ClickedButtonHandler MethodCall;
@@ -115,10 +117,11 @@ namespace ItemRestrictorAdvanced
         }
         public void OnEffectButtonClicked(Player callerPlayer, string buttonName)
         {
-            if (buttonName == buttonName.Substring(0, 4))
-                buttonName = "text";
-            Console.WriteLine(buttonName);
-            Console.WriteLine(buttonText);
+            byte index;
+            byte.TryParse(buttonName.Substring(4, buttonName.Length), out index);
+
+            if(Provider)
+
             foreach (var pair in buttonAction)
             {
                 if (pair.Key == buttonName)

@@ -55,7 +55,7 @@ namespace ItemRestrictorAdvanced
 
                 // Wait for the user to quit the program.
                 //Console.WriteLine("Type: '-watcher' or '--w' to disable watcher.");
-                while (!token.IsCancellationRequested) ;
+                while (!token.IsCancellationRequested) { }
             }
             //System.Diagnostics.Process.Start($@"E:\Users\M22\Documents\GitHub\tx.txt");
             //"Thread has been stopped!"

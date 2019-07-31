@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
+    delegate bool PlayerOnlineHandler();
+
     public class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
@@ -19,15 +21,16 @@ namespace ItemRestrictorAdvanced
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
             EffectManager.sendUIEffect(8100, 22, player.CSteamID, false);
-            List<SteamPlayer> steamPlayers = new List<SteamPlayer>();
-            foreach (var steamPlayer in Provider.clients)
-                steamPlayers.Add(steamPlayer);
-            steamPlayers.Sort(new SteamPlayerCompaper());
+            //List<SteamPlayer> steamPlayers = new List<SteamPlayer>();
+            //foreach (var steamPlayer in Provider.clients)
+            //    steamPlayers.Add(steamPlayer);
+            //steamPlayers.Sort(new SteamPlayerCompaper());
             for (byte i = 0; i < Provider.clients.Count; i++)
             {
-                EffectManager.sendUIEffectText(22, player.CSteamID, false, $"text{i}", $"{steamPlayers[i].playerID.characterName}");
+                EffectManager.sendUIEffectText(22, player.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
             }
             player.Player.serversideSetPluginModal(true);
+            //ItemRestrictor.PlayersOnline = Provider.clients.ToArray();
             System.Console.WriteLine($"/gi executed");
         }
     }

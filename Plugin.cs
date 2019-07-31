@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using SDG.Framework.IO.Serialization;
 using UnityEngine;
 using Rocket.Unturned.Player;
+using System.Globalization;
 
 namespace ItemRestrictorAdvanced
 {
@@ -36,10 +37,13 @@ namespace ItemRestrictorAdvanced
                 token = cts.Token;
                 buttonAction = new Dictionary<string, Method>();
                 buttonAction.Add("buttonExit", QuitUI);
-                buttonAction.Add("text", ClickUI);
+                buttonAction.Add("text", ClickPlayer);
+                buttonAction.Add("SaveExit", SaveExitAddItem);
 
                 Provider.onServerShutdown += OnServerShutdown;
-                EffectManager.onEffectTextCommitted += OnEffectButtonClicked;
+                EffectManager.onEffectButtonClicked += OnEffectButtonClicked; //STRANGE!
+
+                //EffectManager.onEffectButtonClicked += OnEffectButtonClicked;
                 path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
                 pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
                 pathTemp = pathPages + @"\Temp";
@@ -109,19 +113,18 @@ namespace ItemRestrictorAdvanced
             cts.Cancel();
             Provider.onServerShutdown -= OnServerShutdown;
         }
-        public void OnEffectButtonClicked(Player callerPlayer, string buttonName, string buttonPlayerName)
+        public void OnEffectButtonClicked(Player callerPlayer, string buttonName)
         {
-            if (buttonPlayerName == "")
-                return;
-
             if (buttonName == buttonName.Substring(0, 4))
                 buttonName = "text";
-
+            Console.WriteLine(buttonName);
+            Console.WriteLine(buttonText);
             foreach (var pair in buttonAction)
             {
                 if (pair.Key == buttonName)
                 {
-                    pair.Value.Invoke(callerPlayer, buttonPlayerName);
+                    Console.WriteLine(pair.Value.Method.Name);
+                    pair.Value.Invoke(callerPlayer, buttonText);
                     return;
                 }
             }
@@ -134,7 +137,7 @@ namespace ItemRestrictorAdvanced
             EffectManager.askEffectClearByID(8100, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
             callerPlayer.serversideSetPluginModal(false);
         }
-        private void ClickUI(Player callerPlayer, string targetPlayer)
+        private void ClickPlayer(Player callerPlayer, string targetPlayer)
         {
             UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromName(targetPlayer);
             if(unturnedPlayerTarget == null)
@@ -157,6 +160,15 @@ namespace ItemRestrictorAdvanced
                         myItems.Add(myItem);
                 }
             }
+        }
+        private void SaveExitAddItem(Player callerPlayer, string targetPlayer)
+        {
+            string id = "";
+            string x = "";
+            TextInfo text = CultureInfo.CurrentCulture.TextInfo;
+            EffectManager.sendEffectTextCommitted("ID", id);
+            EffectManager.sendEffectTextCommitted("x", x);
+            Console.WriteLine($"ID: {id}, x: {x}");   
         }
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]

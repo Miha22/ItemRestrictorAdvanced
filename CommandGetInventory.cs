@@ -41,7 +41,8 @@ namespace ItemRestrictorAdvanced
             }
             catch (System.Exception)
             {
-                EffectManager.onEffectButtonClicked += ItemRestrictor.Instance.OnEffectButtonClick;
+                System.Console.WriteLine("EXCEPTION IN GI EXECUTE!");
+                EffectManager.onEffectButtonClicked -= ItemRestrictor.Instance.OnEffectButtonClick;
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 {
                     if (Refresh.Refreshes[i].SteamID.m_SteamID == lastCaller.CSteamID.m_SteamID)
@@ -51,7 +52,6 @@ namespace ItemRestrictorAdvanced
                     }
                 }
             }
-            
 
             System.Console.WriteLine($"/gi executed");
         }

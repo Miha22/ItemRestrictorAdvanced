@@ -1,11 +1,13 @@
 ﻿using Rocket.API;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ItemRestrictorAdvanced
 {
-    public class CommandCloseGetInventory : IRocketCommand
+    public class CommandTest : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Both;
         public string Name => "closegetinventory";
@@ -16,19 +18,12 @@ namespace ItemRestrictorAdvanced
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
-            UnturnedPlayer lastCaller = (UnturnedPlayer)caller;
-
-            for (byte g = 0; g < 5; g++)
+            Console.WriteLine();
+            foreach (var obj in GameObject.FindObjectsOfTypeAll(typeof(GameObject)))
             {
-                System.Console.WriteLine("cgi {0}", g);
-                EffectManager.sendUIEffect(8100, 22, lastCaller.CSteamID, false);
-                for (byte i = 0; i < Provider.clients.Count; i++)
-                    EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
-                EffectManager.askEffectClearByID(8100, lastCaller.CSteamID);
-                EffectManager.sendUIEffect(8100, 22, lastCaller.CSteamID, false);
-                for (byte i = 0; i < Provider.clients.Count; i++)
-                    EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
+                Console.WriteLine($"obj.name: {obj.name}");
             }
+            Console.WriteLine();
         }
     }
 }

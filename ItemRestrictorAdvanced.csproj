@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Block.cs" />
-    <Compile Include="CommandCloseGetInventory.cs" />
+    <Compile Include="CommandTest.cs" />
     <Compile Include="CommandI.cs" />
     <Compile Include="CommandGetInventory.cs" />
     <Compile Include="CommandV.cs" />

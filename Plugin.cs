@@ -1,7 +1,6 @@
 ﻿using System;
 using Rocket.Core.Plugins;
 using Rocket.API;
-using Logger = Rocket.Core.Logging.Logger;
 using System.IO;
 using System.Threading.Tasks;
 using Rocket.Core.Commands;
@@ -12,35 +11,29 @@ using SDG.Framework.IO.Serialization;
 using UnityEngine;
 using Rocket.Unturned.Player;
 using System.Globalization;
-using Rocket.Unturned;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace ItemRestrictorAdvanced
 {
-    delegate void Method(Player playerCaller, byte index, ushort effectId);
-
-    class ItemRestrictor : RocketPlugin<PluginConfiguration>
+    internal class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
-        public static ItemRestrictor Instance;
+        internal static ItemRestrictor Instance;
         //public static SteamPlayer[] PlayersOnline; //On the momment when /gi is execued
-        public System.Threading.CancellationTokenSource cts;
-        public System.Threading.CancellationToken token;
-        public System.Threading.CancellationTokenSource ctsR; //refresher
-        public System.Threading.CancellationToken tokenR; //refresher
+        internal System.Threading.CancellationTokenSource cts;
+        internal System.Threading.CancellationToken token;
+        internal System.Threading.CancellationTokenSource ctsR; //refresher
+        internal System.Threading.CancellationToken tokenR; //refresher
         //public event ClickedButtonHandler MethodCall;
         //private Dictionary<string, Method> buttonAction;
+        public ItemRestrictor()
+        {
 
+        }
         protected override void Load()
         {
             string path;
             string pathPages;
             string pathTemp;
-
-            Console.WriteLine();
-            foreach (var obj in GameObject.FindObjectsOfTypeAll(typeof(GameObject)))
-            {
-                Console.WriteLine($"gameobj name: {obj.name}");
-            }
-            Console.WriteLine();
 
             if (Configuration.Instance.Enabled)
             {
@@ -128,6 +121,10 @@ namespace ItemRestrictorAdvanced
 
         public void OnEffectButtonClick(Player callerPlayer, string buttonName)
         {
+            byte.TryParse(buttonName.Substring(4), out byte index);
+            if (Provider.clients.Count < (index + 1))
+                return;
+
             Console.WriteLine($"button clicked: {buttonName}");
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"text[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
             //System.Text.RegularExpressions.Regex regex2 = new System.Text.RegularExpressions.Regex(@"text[0-9]{2}$", System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -135,11 +132,6 @@ namespace ItemRestrictorAdvanced
 
             if (regex.IsMatch(buttonName))
             {
-                byte index = 22;
-                string ind = buttonName.Substring(4);
-                byte.TryParse(ind, out index);
-                Console.WriteLine($"buttonName.Substring(4): {ind}");
-                Console.WriteLine($"index: {index}");
                 ClickPlayer(callerPlayer, index);
                 Console.WriteLine("click player passed");
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
@@ -156,12 +148,12 @@ namespace ItemRestrictorAdvanced
             }
             else
                 QuitUI(callerPlayer, 8100);
-            EffectManager.onEffectButtonClicked += OnEffectPostButtonClicked;
+            EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
             EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
             //Logger.LogException(new MissingMethodException("Internal exception: Missing Method: a method is missing in Dictionary or button name mismatched. \n"));
         }
 
-        public void OnEffectPostButtonClicked(Player callerPlayer, string buttonName)
+        public void OnEffectButtonClick8101(Player callerPlayer, string buttonName)
         {
             Console.WriteLine($"button clicked in post: {buttonName}");
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"item[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -178,7 +170,12 @@ namespace ItemRestrictorAdvanced
             }
             else
                 SaveExitAddItem(callerPlayer);
-            EffectManager.onEffectButtonClicked -= OnEffectPostButtonClicked;
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
+        }
+
+        public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
+        {
+
         }
 
         private void QuitUI(Player callerPlayer, ushort effectId)
@@ -235,6 +232,7 @@ namespace ItemRestrictorAdvanced
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]
         [RocketCommandAlias("ss")]
+        [RocketCommandAlias("sss")]
         public void Execute(IRocketPlayer caller, string[] command)
         {
             Application.Quit();

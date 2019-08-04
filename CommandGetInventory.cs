@@ -29,7 +29,7 @@ namespace ItemRestrictorAdvanced
             try
             {
                 lastCaller = (UnturnedPlayer)caller;
-                EffectManager.onEffectButtonClicked += ItemRestrictor.Instance.OnEffectButtonClick;
+                EffectManager.onEffectButtonClicked += new ManageUI().OnEffectButtonClick;// feature
                 EffectManager.sendUIEffect(8100, 22, lastCaller.CSteamID, false);
                 for (byte i = 0; i < Provider.clients.Count; i++)
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
@@ -42,7 +42,6 @@ namespace ItemRestrictorAdvanced
             catch (System.Exception)
             {
                 System.Console.WriteLine("EXCEPTION IN GI EXECUTE!");
-                EffectManager.onEffectButtonClicked -= ItemRestrictor.Instance.OnEffectButtonClick;
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 {
                     if (Refresh.Refreshes[i].SteamID.m_SteamID == lastCaller.CSteamID.m_SteamID)

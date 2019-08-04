@@ -15,6 +15,138 @@ using Logger = Rocket.Core.Logging.Logger;
 
 namespace ItemRestrictorAdvanced
 {
+    class ManageUI
+    {
+        private byte playerIndex;
+
+        public void OnEffectButtonClick(Player callerPlayer, string buttonName)
+        {
+            byte.TryParse(buttonName.Substring(4), out playerIndex);
+            if (Provider.clients.Count < (playerIndex + 1))
+                return;
+
+            Console.WriteLine($"button clicked: {buttonName}");
+            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"text[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+            if (regex.IsMatch(buttonName))
+            {
+                ClickPlayer(callerPlayer, playerIndex);
+                Console.WriteLine("click player passed");
+                for (byte i = 0; i < Refresh.Refreshes.Length; i++)
+                {
+                    if (Refresh.Refreshes[i].SteamID.m_SteamID == callerPlayer.channel.owner.playerID.steamID.m_SteamID)
+                    {
+                        Refresh.Refreshes[i].TurnOff(i);
+                        break;
+                    }
+                }
+                Console.WriteLine("refresh turning off passed");
+                //EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
+                //EffectManager.sendUIEffect(8101, 23, false);
+                EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+            }
+            else
+                QuitUI(callerPlayer, 8100);
+
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
+            //Logger.LogException(new MissingMethodException("Internal exception: Missing Method: a method is missing in Dictionary or button name mismatched. \n"));
+        }
+
+        public void OnEffectButtonClick8101(Player callerPlayer, string buttonName)
+        {
+            Console.WriteLine($"button clicked in post: {buttonName}");
+            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"item[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
+            if (regex.IsMatch(buttonName))
+            {
+
+                return;
+            }
+                
+            else if (buttonName == "ButtonExit")
+            {
+                QuitUI(callerPlayer, 8101);
+            }
+            else if (buttonName == "MainPage")
+            {
+                QuitUI(callerPlayer, 8101);
+                CommandGetInventory.Instance.Execute(UnturnedPlayer.FromPlayer(callerPlayer));
+            }
+            else
+                SaveExitAddItem(callerPlayer);
+
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
+        }
+
+        public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
+        {
+
+        }
+
+        private void QuitUI(Player callerPlayer, ushort effectId)
+        {
+            EffectManager.askEffectClearByID(effectId, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
+            callerPlayer.serversideSetPluginModal(false);
+        }
+
+        private void ClickPlayer(Player callerPlayer, byte index)//target player idnex in provider.clients
+        {
+            //UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromSteamPlayer(Provider.clients[index]);
+            Items[] pages = new Items[Provider.clients[playerIndex].player.channel.owner.player.inventory.items.Length];
+            try
+            {
+                for (byte i = 0; i < pages.Length; i++)
+                    pages[i] = Provider.clients[playerIndex].player.channel.owner.player.inventory.items[i];
+            }
+            catch (Exception)
+            {
+                Logger.LogException(new Exception($"Internal exception: Player not found: {Provider.clients[playerIndex].player.channel.owner.playerID.characterName} has just left the server.")); //make then a write to Inventory.dat (to do)
+            }
+
+            EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
+            EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
+            //EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false)
+            List<MyItem> myItems = new List<MyItem>();
+            Console.WriteLine($"target inv null? {pages == null}");
+            Console.WriteLine($"");
+
+            Console.WriteLine($"pages count: {pages.Length}");
+            foreach (var page in pages)
+            {
+                if (page == null)
+                    continue;
+                Console.WriteLine($"items in page: {page.items.Count}");
+                foreach (var item in page.items)
+                {
+                    Console.WriteLine("step 1");
+                    MyItem myItem = new MyItem(item.item.id, item.item.amount, item.item.quality, item.item.state);
+                    Console.WriteLine("step 2");
+                    if (ItemRestrictor.Instance.HasItem(myItem, myItems))
+                        continue;
+                    else
+                        myItems.Add(myItem);
+                    Console.WriteLine("step 3");
+                }
+            }
+            Console.WriteLine("step 4");
+            foreach (var item in myItems)
+            {
+                Console.WriteLine($"item: {item.ID}, {item.x}");
+            }
+            Console.WriteLine("step 5");
+        }
+
+        private void SaveExitAddItem(Player callerPlayer)
+        {
+            string id = "";
+            string x = "";
+            TextInfo text = CultureInfo.CurrentCulture.TextInfo;
+            EffectManager.sendEffectTextCommitted("ID", id);
+            EffectManager.sendEffectTextCommitted("x", x);
+            Console.WriteLine();
+            Console.WriteLine($"ID: {id}, x: {x}");
+            Console.WriteLine();
+        }
+    }
     internal class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
         internal static ItemRestrictor Instance;
@@ -84,7 +216,6 @@ namespace ItemRestrictorAdvanced
         protected override void Unload()
         {
             cts.Cancel();
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
         }
         //[RocketCommand("inventory", "", "", AllowedCaller.Both)]
         //[RocketCommandAlias("inv")]
@@ -119,116 +250,7 @@ namespace ItemRestrictorAdvanced
             Provider.onServerShutdown -= OnServerShutdown;
         }
 
-        public void OnEffectButtonClick(Player callerPlayer, string buttonName)
-        {
-            byte.TryParse(buttonName.Substring(4), out byte index);
-            if (Provider.clients.Count < (index + 1))
-                return;
-
-            Console.WriteLine($"button clicked: {buttonName}");
-            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"text[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
-            //System.Text.RegularExpressions.Regex regex2 = new System.Text.RegularExpressions.Regex(@"text[0-9]{2}$", System.Text.RegularExpressions.RegexOptions.Compiled);
-            //System.Text.RegularExpressions.Regex[] regices = new System.Text.RegularExpressions.Regex[2] { regex1, regex2 };
-
-            if (regex.IsMatch(buttonName))
-            {
-                ClickPlayer(callerPlayer, index);
-                Console.WriteLine("click player passed");
-                for (byte i = 0; i < Refresh.Refreshes.Length; i++)
-                {
-                    if(Refresh.Refreshes[i].SteamID.m_SteamID == callerPlayer.channel.owner.playerID.steamID.m_SteamID)
-                    {
-                        Refresh.Refreshes[i].TurnOff(i);
-                        break;
-                    }
-                }
-                Console.WriteLine("refresh turning off passed");
-                //EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
-                //EffectManager.sendUIEffect(8101, 23, false);
-            }
-            else
-                QuitUI(callerPlayer, 8100);
-            EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
-            //Logger.LogException(new MissingMethodException("Internal exception: Missing Method: a method is missing in Dictionary or button name mismatched. \n"));
-        }
-
-        public void OnEffectButtonClick8101(Player callerPlayer, string buttonName)
-        {
-            Console.WriteLine($"button clicked in post: {buttonName}");
-            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"item[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
-            if (regex.IsMatch(buttonName))
-                return;
-            else if (buttonName == "ButtonExit")
-            {
-                QuitUI(callerPlayer, 8101);
-            }
-            else if(buttonName == "MainPage")
-            {
-                QuitUI(callerPlayer, 8101);
-                CommandGetInventory.Instance.Execute(UnturnedPlayer.FromPlayer(callerPlayer));
-            }
-            else
-                SaveExitAddItem(callerPlayer);
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
-        }
-
-        public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
-        {
-
-        }
-
-        private void QuitUI(Player callerPlayer, ushort effectId)
-        {
-            EffectManager.askEffectClearByID(effectId, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
-            callerPlayer.serversideSetPluginModal(false);
-        }
-
-        private void ClickPlayer(Player callerPlayer, byte index)//target player idnex in provider.clients
-        {
-            //UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromSteamPlayer(Provider.clients[index]);
-            Items[] targetInventory = new Items[callerPlayer.channel.owner.player.inventory.items.Length];
-            try
-            {
-                for (byte i = 0; i < targetInventory.Length; i++)
-                    targetInventory[i] = callerPlayer.channel.owner.player.inventory.items[i];
-            }
-            catch (Exception)
-            {
-                Logger.LogException(new Exception($"Global exception: Player not found: {callerPlayer.channel.owner.playerID.characterName} has just left the server.")); //make then a write to Inventory.dat (to do)
-            }
-            
-            EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
-            EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
-            //EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false)
-            List<MyItem> myItems = new List<MyItem>();
-            Console.WriteLine($"target inv null? {targetInventory == null}");
-            Console.WriteLine($"");
-            
-            //foreach (var page in targetInventory)
-            //{
-            //    foreach (var item in page.items)
-            //    {
-            //        MyItem myItem = new MyItem(item.item.id, item.item.amount, item.item.quality, item.item.state);
-            //        if (HasItem(myItem, myItems))
-            //            continue;
-            //        else
-            //            myItems.Add(myItem);
-            //    }
-            //}
-        }
-
-        private void SaveExitAddItem(Player callerPlayer)
-        {
-            string id = "";
-            string x = "";
-            TextInfo text = CultureInfo.CurrentCulture.TextInfo;
-            EffectManager.sendEffectTextCommitted("ID", id);
-            EffectManager.sendEffectTextCommitted("x", x);
-            Console.WriteLine();
-            Console.WriteLine($"ID: {id}, x: {x}");
-            Console.WriteLine();
-        }
+        
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]
         [RocketCommandAlias("ss")]
@@ -635,7 +657,7 @@ namespace ItemRestrictorAdvanced
 
             return (byte)pages.Count;
         }
-        private bool HasItem(MyItem item, List<MyItem> items)
+        internal bool HasItem(MyItem item, List<MyItem> items)
         {
             for (int i = 0; i < items.Count; i++)
             {

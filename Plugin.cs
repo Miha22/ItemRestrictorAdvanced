@@ -18,43 +18,92 @@ namespace ItemRestrictorAdvanced
     class ManageUI
     {
         private byte playerIndex;
+        private byte itemIndex;
+        private byte currentPage;
+        public static byte pagesCount;
+        private byte pagesCountInv;
+
+        public ManageUI(byte pagesCount)
+        {
+            currentPage = 1;
+            ManageUI.pagesCount = pagesCount;// !
+        }
+
+        private void SetCurrentPage(byte page, ulong mSteamID)
+        {
+            for (byte i = 0; i < Refresh.Refreshes.Length; i++)
+            {
+                if (Refresh.Refreshes[i].CallerSteamID.m_SteamID == mSteamID)
+                {
+                    Refresh.Refreshes[i].CurrentPage = page;
+                    return;
+                }
+            }
+        }
 
         public void OnEffectButtonClick(Player callerPlayer, string buttonName)
         {
-            byte.TryParse(buttonName.Substring(4), out playerIndex);
-            if (Provider.clients.Count < (playerIndex + 1))
-                return;
-
-            Console.WriteLine($"button clicked: {buttonName}");
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"text[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
-
+            byte.TryParse(buttonName.Substring(4), out playerIndex);
             if (regex.IsMatch(buttonName))
             {
+                if (Provider.clients.Count < ((playerIndex + 1) * pagesCount))
+                    return;
+
                 ClickPlayer(callerPlayer, playerIndex);
-                Console.WriteLine("click player passed");
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 {
-                    if (Refresh.Refreshes[i].SteamID.m_SteamID == callerPlayer.channel.owner.playerID.steamID.m_SteamID)
+                    if (Refresh.Refreshes[i].CallerSteamID.m_SteamID == callerPlayer.channel.owner.playerID.steamID.m_SteamID)
                     {
                         Refresh.Refreshes[i].TurnOff(i);
                         break;
                     }
                 }
-                Console.WriteLine("refresh turning off passed");
-                //EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
-                //EffectManager.sendUIEffect(8101, 23, false);
+                EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
                 EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
             }
+            else if(buttonName == "ButtonNext")
+            {
+                if(currentPage >= pagesCount)
+                {
+                    EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"1");
+                    currentPage = 1;
+                    SetCurrentPage(1, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
+                }
+                else
+                {
+                    EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage++}");
+                    SetCurrentPage(currentPage, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
+                    //send current page
+                }   
+            }
+            else if(buttonName == "ButtonPrev")
+            {
+                if (currentPage <= 1)
+                {
+                    EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{pagesCount}");
+                    currentPage = pagesCount;
+                    SetCurrentPage(currentPage, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
+                    //send 1st page
+                }
+                else
+                {
+                    EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage--}");
+                    SetCurrentPage(currentPage, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
+                    //send current page
+                }
+            }
             else
+            {
+                EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
                 QuitUI(callerPlayer, 8100);
-
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
+            }
             //Logger.LogException(new MissingMethodException("Internal exception: Missing Method: a method is missing in Dictionary or button name mismatched. \n"));
         }
 
         public void OnEffectButtonClick8101(Player callerPlayer, string buttonName)
         {
-            Console.WriteLine($"button clicked in post: {buttonName}");
+            byte.TryParse(buttonName.Substring(4), out itemIndex);
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"item[0-9]", System.Text.RegularExpressions.RegexOptions.Compiled);
             if (regex.IsMatch(buttonName))
             {

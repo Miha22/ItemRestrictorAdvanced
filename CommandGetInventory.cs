@@ -16,7 +16,6 @@ namespace ItemRestrictorAdvanced
         public string Syntax => "/getinventory <player>  /gi <player>";
         public List<string> Aliases => new List<string>() { "getinventory", "gi" };
         public List<string> Permissions => new List<string>() { "rocket.getinventory", "rocket.gi" };
-        UnturnedPlayer lastCaller;
         public static CommandGetInventory Instance;
 
         public CommandGetInventory()
@@ -28,12 +27,12 @@ namespace ItemRestrictorAdvanced
         {
             try
             {
-                lastCaller = (UnturnedPlayer)caller;
-                EffectManager.onEffectButtonClicked += new ManageUI().OnEffectButtonClick;// feature
+                UnturnedPlayer lastCaller = (UnturnedPlayer)caller;
                 EffectManager.sendUIEffect(8100, 22, lastCaller.CSteamID, false);
                 for (byte i = 0; i < Provider.clients.Count; i++)
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
-
+                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"page", "1");
+                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
                 lastCaller.Player.serversideSetPluginModal(true);
 
                 U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).Execute;
@@ -44,11 +43,7 @@ namespace ItemRestrictorAdvanced
                 System.Console.WriteLine("EXCEPTION IN GI EXECUTE!");
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 {
-                    if (Refresh.Refreshes[i].SteamID.m_SteamID == lastCaller.CSteamID.m_SteamID)
-                    {
-                        Refresh.Refreshes[i].TurnOff(i);
-                        break;
-                    }
+                    Refresh.Refreshes[i].TurnOff(i);
                 }
             }
 
@@ -58,18 +53,21 @@ namespace ItemRestrictorAdvanced
     public class Refresh
     {
         public static Refresh[] Refreshes = new Refresh[1];
-        public CSteamID SteamID { get; set; }
+        public CSteamID CallerSteamID { get; set; }
+        public byte CurrentPage { get; set; }
 
         public Refresh(CSteamID steamID)
         {
-            SteamID = steamID;
+            CallerSteamID = steamID;
+            CurrentPage = 1;
             Refreshes[Refreshes.Length - 1] = this;
             ReSizeUp();
         }
 
         public async void Execute(UnturnedPlayer connectedPlayer)
         {
-            await Task.Run(() => Do());
+            ManageUI.pagesCount = (byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0);
+            await Task.Run(() => Do(ManageUI.pagesCount));
         }
 
         public void TurnOff(byte index)
@@ -79,12 +77,14 @@ namespace ItemRestrictorAdvanced
             ReSizeDown(index);
         }
 
-        private void Do()
+        private void Do(byte pagemax)
         {
-            EffectManager.askEffectClearByID(8100, SteamID);
-            EffectManager.sendUIEffect(8100, 22, SteamID, false);
+            EffectManager.askEffectClearByID(8100, CallerSteamID);
+            EffectManager.sendUIEffect(8100, 22, CallerSteamID, false);
+            byte multiplier = (byte)((CurrentPage - 1) * 24);
             for (byte i = 0; i < Provider.clients.Count; i++)
-                EffectManager.sendUIEffectText(22, SteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
+                EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i + multiplier].playerID.characterName}");
+            EffectManager.sendUIEffectText(22, CallerSteamID, false, "pagemax", $"{pagemax}");
         }
 
         private void ReSizeUp()

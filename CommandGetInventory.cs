@@ -33,6 +33,7 @@ namespace ItemRestrictorAdvanced
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"page", "1");
                 EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
+                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.pagesCount}");
                 lastCaller.Player.serversideSetPluginModal(true);
 
                 U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).Execute;
@@ -82,8 +83,8 @@ namespace ItemRestrictorAdvanced
             EffectManager.askEffectClearByID(8100, CallerSteamID);
             EffectManager.sendUIEffect(8100, 22, CallerSteamID, false);
             byte multiplier = (byte)((CurrentPage - 1) * 24);
-            for (byte i = 0; i < Provider.clients.Count; i++)
-                EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i + multiplier].playerID.characterName}");
+            for (byte i = multiplier; (i < (24 + multiplier)) && (i < (byte)Provider.clients.Count); i++)
+                EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
             EffectManager.sendUIEffectText(22, CallerSteamID, false, "pagemax", $"{pagemax}");
         }
 

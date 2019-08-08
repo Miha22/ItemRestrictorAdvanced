@@ -45,6 +45,7 @@
     <Compile Include="Group.cs" />
     <Compile Include="EIgnore.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="ManageUI.cs" />
     <Compile Include="MyConverter.cs" />
     <Compile Include="MyEffectManager.cs" />
     <Compile Include="MyItem.cs" />

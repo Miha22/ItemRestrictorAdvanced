@@ -4,21 +4,67 @@ using SDG.Unturned;
 using Rocket.Unturned.Player;
 using System.Globalization;
 using Logger = Rocket.Core.Logging.Logger;
+using Rocket.API;
 
 namespace ItemRestrictorAdvanced
 {
-    class ManageUI
+    sealed class CommandUIEmergency : IRocketCommand
     {
+        public AllowedCaller AllowedCaller => AllowedCaller.Both;
+        public string Name => "EmergencyUIstop";
+        public string Help => "Use this command in case if UI craches and everybody has non clearable UI";
+        public string Syntax => "/emuistop";
+        public List<string> Aliases => new List<string>() { "emuistop", "emergencyuistop" };
+        public List<string> Permissions => new List<string>() { "rocket.emergencyuistop", "rocket.emuistop" };
+
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            ManageUI.UnLoad();
+            Console.WriteLine(ManageUI.Instances == null);
+            Logger.Log("Inventory UI stoped");
+        }
+    }
+    sealed class ManageUI
+    {
+        public static List<ManageUI> Instances;
+        internal static byte PagesCount { get; set; }
+        public byte PagesCountInv { get; set; }
         private byte playerIndex;
         private byte itemIndex;
         private byte currentPage;
-        public static byte pagesCount;
-        private byte pagesCountInv;
+        private Player targetPlayer;
+        private List<MyItem> myItems;
 
         public ManageUI(byte pagesCount)
         {
             currentPage = 1;
-            ManageUI.pagesCount = pagesCount;// !
+            ManageUI.PagesCount = pagesCount;// !
+            myItems = new List<MyItem>();
+            Instances.Add(this);
+        }
+
+        public static void UnLoad()
+        {
+            if(ManageUI.Instances != null)
+            {
+                foreach (ManageUI manageUI in ManageUI.Instances)
+                    manageUI.UnLoadEvents();
+            }
+            
+            foreach (SteamPlayer steamPlayer in Provider.clients)
+            {
+                EffectManager.askEffectClearByID(8100, steamPlayer.playerID.steamID);
+                EffectManager.askEffectClearByID(8101, steamPlayer.playerID.steamID);
+                EffectManager.askEffectClearByID(8102, steamPlayer.playerID.steamID);
+                steamPlayer.player.serversideSetPluginModal(false);
+            }
+        }
+
+        private void UnLoadEvents()
+        {
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick;
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
         }
 
         private void SetCurrentPage(byte page, ulong mSteamID)
@@ -46,10 +92,22 @@ namespace ItemRestrictorAdvanced
             byte.TryParse(buttonName.Substring(4), out playerIndex);
             if (regex.IsMatch(buttonName))
             {
-                if (Provider.clients.Count < ((playerIndex + 1) * pagesCount))
+                if (Provider.clients.Count < ((playerIndex + 1) * PagesCount))
                     return;
-
-                ClickPlayer(callerPlayer, playerIndex);
+                playerIndex = (byte)((currentPage - 1) * 24);
+                
+                try
+                {
+                    targetPlayer = Provider.clients[playerIndex].player;
+                }
+                catch (Exception)
+                {
+                    Logger.LogError($"Internal error: Player not found: player has just left the server.");
+                    return;
+                }
+                targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
+                targetPlayer.inventory.onInventoryRemoved += OnInventoryChange;
+                ClickPlayer(callerPlayer);
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 {
                     if (Refresh.Refreshes[i].CallerSteamID.m_SteamID == callerPlayer.channel.owner.playerID.steamID.m_SteamID)
@@ -63,7 +121,7 @@ namespace ItemRestrictorAdvanced
             }
             else if(buttonName == "ButtonNext")
             {
-                if(currentPage >= pagesCount)
+                if(currentPage >= PagesCount)
                 {
                     EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"1");
                     currentPage = 1;
@@ -82,8 +140,8 @@ namespace ItemRestrictorAdvanced
             {
                 if (currentPage <= 1)
                 {
-                    EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{pagesCount}");
-                    currentPage = pagesCount;
+                    EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{PagesCount}");
+                    currentPage = PagesCount;
                     SetCurrentPage(currentPage, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
                     SetPlayersList(currentPage, callerPlayer.channel.owner.playerID.steamID);
                     //send 1st page
@@ -138,53 +196,52 @@ namespace ItemRestrictorAdvanced
         {
             EffectManager.askEffectClearByID(effectId, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
             callerPlayer.serversideSetPluginModal(false);
+            myItems.Clear();
         }
 
-        private void ClickPlayer(Player callerPlayer, byte index)//target player idnex in provider.clients
+        private async void OnInventoryChange(byte page, byte index, ItemJar item)
+        {
+            
+        }
+
+        private void ClickPlayer(Player callerPlayer)//target player idnex in provider.clients
         {
             //UnturnedPlayer unturnedPlayerTarget = UnturnedPlayer.FromSteamPlayer(Provider.clients[index]);
-            Items[] pages = new Items[Provider.clients[playerIndex].player.channel.owner.player.inventory.items.Length];
+            Items[] pages;
             try
             {
-                for (byte i = 0; i < pages.Length; i++)
-                    pages[i] = Provider.clients[playerIndex].player.channel.owner.player.inventory.items[i];
+                pages = targetPlayer.inventory.items;// array (reference type in stack => by value)
             }
             catch (Exception)
             {
-                Logger.LogException(new Exception($"Internal exception: Player not found: {Provider.clients[playerIndex].player.channel.owner.playerID.characterName} has just left the server.")); //make then a write to Inventory.dat (to do)
+                Logger.LogError($"Internal error: Player not found: player has just left the server."); //make then a write to Inventory.dat (to do)
+                return;
             }
-
             EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
             EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
-            //EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false)
-            List<MyItem> myItems = new List<MyItem>();
-            Console.WriteLine($"target inv null? {pages == null}");
-            Console.WriteLine($"");
 
-            Console.WriteLine($"pages count: {pages.Length}");
             foreach (var page in pages)
             {
                 if (page == null)
                     continue;
-                Console.WriteLine($"items in page: {page.items.Count}");
-                foreach (var item in page.items)
+                foreach (ItemJar item in page.items)
                 {
-                    Console.WriteLine("step 1");
                     MyItem myItem = new MyItem(item.item.id, item.item.amount, item.item.quality, item.item.state);
-                    Console.WriteLine("step 2");
                     if (ItemRestrictor.Instance.HasItem(myItem, myItems))
                         continue;
                     else
                         myItems.Add(myItem);
-                    Console.WriteLine("step 3");
                 }
             }
-            Console.WriteLine("step 4");
-            foreach (var item in myItems)
-            {
-                Console.WriteLine($"item: {item.ID}, {item.x}");
-            }
-            Console.WriteLine("step 5");
+            PagesCountInv = (byte)Math.Ceiling((myItems.Count / 24.0));
+            //EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false)
+            // viewing myItems
+            //Console.WriteLine("step 4");
+            //foreach (var item in myItems)
+            //{
+            //    Console.WriteLine($"item: {item.ID}, {item.x}");
+            //}
+            //Console.WriteLine("step 5");
         }
 
         private void SaveExitAddItem(Player callerPlayer)

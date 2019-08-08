@@ -18,20 +18,28 @@ namespace ItemRestrictorAdvanced
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
-            int len = (VehicleManager.vehicles.Count - 1);
-            for (int index1 = len; index1 > 0; index1--)
+            //int len = (VehicleManager.vehicles.Count - 1);
+            //for (int index1 = len; index1 > 0; index1--)
+            //{
+            //    //Console.WriteLine($"index1: {index1}");
+            //    //Console.WriteLine($"VehicleManager.vehicles.Count: {VehicleManager.vehicles.Count}");
+            //    //Console.WriteLine($"vehicles Count: {VehicleManager.vehicles.Count}, index1: {index1}");
+            //    UnityEngine.Object.Destroy((UnityEngine.Object)VehicleManager.vehicles[index1].gameObject);
+            //    //Console.WriteLine($"vehicles Count after destroy: {VehicleManager.vehicles.Count - 1}");
+            //    VehicleManager.vehicles.RemoveAt(index1);
+            //    //Console.WriteLine($"index: {index1}, veh: {VehicleManager.vehicles[index1].instanceID}");
+            //    //Console.WriteLine("remove passed");
+            //}
+            //UnityEngine.Object.Destroy((UnityEngine.Object)VehicleManager.vehicles[0].gameObject);
+            //Console.WriteLine($"vehicles: {VehicleManager.vehicles.Count}");
+            foreach (var st in Provider.clients)
             {
-                //Console.WriteLine($"index1: {index1}");
-                //Console.WriteLine($"VehicleManager.vehicles.Count: {VehicleManager.vehicles.Count}");
-                //Console.WriteLine($"vehicles Count: {VehicleManager.vehicles.Count}, index1: {index1}");
-                UnityEngine.Object.Destroy((UnityEngine.Object)VehicleManager.vehicles[index1].gameObject);
-                //Console.WriteLine($"vehicles Count after destroy: {VehicleManager.vehicles.Count - 1}");
-                VehicleManager.vehicles.RemoveAt(index1);
-                //Console.WriteLine($"index: {index1}, veh: {VehicleManager.vehicles[index1].instanceID}");
-                //Console.WriteLine("remove passed");
+                st.player.inventory.onInventoryAdded += OnInventoryChange;
             }
-            UnityEngine.Object.Destroy((UnityEngine.Object)VehicleManager.vehicles[0].gameObject);
-            Console.WriteLine($"vehicles: {VehicleManager.vehicles.Count}");
+        }
+        private void OnInventoryChange(byte page, byte index, ItemJar item)
+        {
+            Console.WriteLine($"item changed! in player inventory");
         }
     }
 }

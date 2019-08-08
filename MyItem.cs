@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace ItemRestrictorAdvanced
 {
     [JsonObject(MemberSerialization.OptIn)]
-    class MyItem
+    sealed class MyItem
     {
         [JsonProperty]
         public ushort ID { get; set; }

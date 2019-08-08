@@ -10,23 +10,20 @@ using Newtonsoft.Json;
 using SDG.Framework.IO.Serialization;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
+using System.Threading;
 
 namespace ItemRestrictorAdvanced
 {
-    internal class ItemRestrictor : RocketPlugin<PluginConfiguration>
+    sealed class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
         internal static ItemRestrictor Instance;
         //public static SteamPlayer[] PlayersOnline; //On the momment when /gi is execued
-        internal System.Threading.CancellationTokenSource cts;
-        internal System.Threading.CancellationToken token;
-        internal System.Threading.CancellationTokenSource ctsR; //refresher
-        internal System.Threading.CancellationToken tokenR; //refresher
+        internal CancellationTokenSource cts;
+        internal CancellationToken token;
+        internal CancellationTokenSource ctsR; //refresher
+        internal CancellationToken tokenR; //refresher
         //public event ClickedButtonHandler MethodCall;
         //private Dictionary<string, Method> buttonAction;
-        public ItemRestrictor()
-        {
-
-        }
         protected override void Load()
         {
             string path;
@@ -38,9 +35,9 @@ namespace ItemRestrictorAdvanced
                 Instance = this;
                 Provider.onServerShutdown += OnServerShutdown;
 
-                cts = new System.Threading.CancellationTokenSource();
+                cts = new CancellationTokenSource();
                 token = cts.Token;
-                ctsR = new System.Threading.CancellationTokenSource();
+                ctsR = new CancellationTokenSource();
                 tokenR = ctsR.Token;
 
                 //buttonAction = new Dictionary<string, Method>();
@@ -84,6 +81,7 @@ namespace ItemRestrictorAdvanced
             cts.Cancel();
             for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 Refresh.Refreshes[i].TurnOff(i);
+            ManageUI.UnLoad();
         }
         //[RocketCommand("inventory", "", "", AllowedCaller.Both)]
         //[RocketCommandAlias("inv")]
@@ -102,7 +100,7 @@ namespace ItemRestrictorAdvanced
         //        }
         //    }
         //}
-        async void WatcherAsync(System.Threading.CancellationToken token, string path, string pathPages, string pathTemp)
+        async void WatcherAsync(CancellationToken token, string path, string pathPages, string pathTemp)
         {
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
             if (token.IsCancellationRequested)
@@ -174,6 +172,7 @@ namespace ItemRestrictorAdvanced
                 }
             }
         }
+
         private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr, EIgnore ignore = EIgnore.None)//look up a call of GetPlayerItems for "str" for more info
         {
             List<MyItem> myItems = new List<MyItem>();
@@ -229,10 +228,6 @@ namespace ItemRestrictorAdvanced
                 }
             }
             return (myItems, pages);
-        }
-        internal static void OnInventoryAdded()
-        {
-
         }
         public (bool, List<MyItem>) TryAddItems(string writepath, string readpath, string readpath2)
         {

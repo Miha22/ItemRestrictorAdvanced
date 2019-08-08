@@ -7,7 +7,7 @@ using SDG.Unturned;
 
 namespace ItemRestrictorAdvanced
 {
-    public class Watcher
+    sealed class Watcher
     {
         private string _pathPages;
         private string _pathTemp;

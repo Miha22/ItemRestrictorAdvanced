@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ItemRestrictorAdvanced
 {
-    public class CommandGetInventory : IRocketCommand
+    sealed class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
         public string Name => "getinventory";
@@ -16,7 +16,7 @@ namespace ItemRestrictorAdvanced
         public string Syntax => "/getinventory <player>  /gi <player>";
         public List<string> Aliases => new List<string>() { "getinventory", "gi" };
         public List<string> Permissions => new List<string>() { "rocket.getinventory", "rocket.gi" };
-        public static CommandGetInventory Instance;
+        public static CommandGetInventory Instance { get; private set; }
 
         public CommandGetInventory()
         {
@@ -32,12 +32,12 @@ namespace ItemRestrictorAdvanced
                 for (byte i = 0; i < Provider.clients.Count; i++)
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"page", "1");
-                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
-                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.pagesCount}");
                 lastCaller.Player.serversideSetPluginModal(true);
+                //EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
+                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.PagesCount}");
 
-                U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).Execute;
-                U.Events.OnPlayerDisconnected += new Refresh(lastCaller.CSteamID).Execute;
+                U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;
+                U.Events.OnPlayerDisconnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;
             }
             catch (System.Exception)
             {
@@ -51,10 +51,33 @@ namespace ItemRestrictorAdvanced
             System.Console.WriteLine($"/gi executed");
         }
     }
+    //public class RefreshInv
+    //{
+    //    public CSteamID CallerSteamID { get; private set; }
+    //    public byte CurrentPage { get; set; }
+
+
+
+    //    public void TurnOff(Player player)
+    //    {
+    //        player.inventory.onInventoryAdded -= this.OnInventoryChange;
+    //        player.inventory.onInventoryRemoved -= this.OnInventoryChange;
+    //    }
+
+    //    private void Do(byte pagemax)
+    //    {
+    //        EffectManager.askEffectClearByID(8100, CallerSteamID);
+    //        EffectManager.sendUIEffect(8100, 22, CallerSteamID, false);
+    //        byte multiplier = (byte)((CurrentPage - 1) * 24);
+    //        for (byte i = multiplier; (i < (24 + multiplier)) && (i < (byte)Provider.clients.Count); i++)
+    //            EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
+    //        EffectManager.sendUIEffectText(22, CallerSteamID, false, "pagemax", $"{pagemax}");
+    //    }
+    //}
     public class Refresh
     {
         public static Refresh[] Refreshes = new Refresh[1];
-        public CSteamID CallerSteamID { get; set; }
+        public CSteamID CallerSteamID { get; private set; }
         public byte CurrentPage { get; set; }
 
         public Refresh(CSteamID steamID)
@@ -65,16 +88,17 @@ namespace ItemRestrictorAdvanced
             ReSizeUp();
         }
 
-        public async void Execute(UnturnedPlayer connectedPlayer)
+        public async void OnPlayersChange(UnturnedPlayer connectedPlayer)
         {
-            ManageUI.pagesCount = (byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0);
-            await Task.Run(() => Do(ManageUI.pagesCount));
+            ManageUI.PagesCount = (byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0);
+            await Task.Run(() => Do(ManageUI.PagesCount));
         }
+
 
         public void TurnOff(byte index)
         {
-            U.Events.OnPlayerConnected -= this.Execute;
-            U.Events.OnPlayerDisconnected -= this.Execute;
+            U.Events.OnPlayerConnected -= this.OnPlayersChange;
+            U.Events.OnPlayerDisconnected -= this.OnPlayersChange;
             ReSizeDown(index);
         }
 

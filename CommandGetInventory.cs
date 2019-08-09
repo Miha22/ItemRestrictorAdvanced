@@ -22,6 +22,10 @@ namespace ItemRestrictorAdvanced
         {
             Instance = this;
         }
+        private async void OnInventoryChange(byte page, byte index, ItemJar item)
+        {
+            System.Console.WriteLine($"page: {page}, index: {index}, id: {item.item.id}");
+        }
 
         public void Execute(IRocketPlayer caller, string[] command = null)
         {
@@ -33,8 +37,11 @@ namespace ItemRestrictorAdvanced
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"page", "1");
                 lastCaller.Player.serversideSetPluginModal(true);
-                //EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
+                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.PagesCount}");
+                ManageUI.UICallers.Add(lastCaller.Player);
+                //lastCaller.Player.inventory.onInventoryAdded += OnInventoryChange;
+                //lastCaller.Player.inventory.onInventoryRemoved += OnInventoryChange;
 
                 U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;
                 U.Events.OnPlayerDisconnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;

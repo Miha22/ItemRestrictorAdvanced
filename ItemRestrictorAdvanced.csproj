@@ -38,6 +38,7 @@
     <Compile Include="CommandTest.cs" />
     <Compile Include="CommandI.cs" />
     <Compile Include="CommandGetInventory.cs" />
+    <Compile Include="CommandUIEmergency.cs" />
     <Compile Include="CommandV.cs" />
     <Compile Include="ECharName.cs" />
     <Compile Include="EFailure.cs" />

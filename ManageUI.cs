@@ -178,9 +178,11 @@ namespace ItemRestrictorAdvanced
                     //show 8102
                     Console.WriteLine("show 8102");
                     break;
+
                 case "SaveExit":
                     SaveExitAddItem(callerPlayer);
                     break;
+
                 case "ButtonNext":
                     if (currentPage == PagesCountInv)
                         currentPage = 1;
@@ -190,29 +192,28 @@ namespace ItemRestrictorAdvanced
                     ShowItemsUI(callerPlayer, currentPage);
                     EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
                     break;
+
                 case "ButtonPrev":
                     if (currentPage == 1)
-                    {
-                        EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"1");
                         currentPage = PagesCountInv;
-                        //sends 1st page
-                    }
                     else
-                    {
-                        EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
                         currentPage--;
-                    }
+                    EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
+                    GetTargetItems();
+                    ShowItemsUI(callerPlayer, currentPage);
                     break;
+
                 case "MainPage":
                     if (targetPlayer != null)
                     {
                         targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
                         targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
                     }
-
                     EffectManager.askEffectClearByID(8101, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
                     CommandGetInventory.Instance.Execute(UnturnedPlayer.FromPlayer(callerPlayer));
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
                     break;
+
                 default://ButtonExit
                     if (targetPlayer != null)
                     {
@@ -220,6 +221,7 @@ namespace ItemRestrictorAdvanced
                         targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
                     }
                     QuitUI(callerPlayer, 8101);
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
                     break;
             }
             //else if(buttonName == "ButtonNext")
@@ -252,8 +254,6 @@ namespace ItemRestrictorAdvanced
             //}
             //else
             //    SaveExitAddItem(callerPlayer);
-
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
         }
 
         private async void OnInventoryChange(byte page, byte index, ItemJar item)

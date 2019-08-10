@@ -46,6 +46,7 @@
     <Compile Include="Group.cs" />
     <Compile Include="EIgnore.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="Liquidation.cs" />
     <Compile Include="ManageUI.cs" />
     <Compile Include="MyConverter.cs" />
     <Compile Include="MyEffectManager.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="PluginConfiguration.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Refresh.cs" />
     <Compile Include="SteamChannel.cs" />
     <Compile Include="SteamPlayerCompaper.cs" />
     <Compile Include="Vehicle.cs" />

@@ -14,16 +14,11 @@ using System.Threading;
 
 namespace ItemRestrictorAdvanced
 {
-    sealed class ItemRestrictor : RocketPlugin<PluginConfiguration>
+    class ItemRestrictor : RocketPlugin<PluginConfiguration>
     {
         internal static ItemRestrictor Instance;
-        //public static SteamPlayer[] PlayersOnline; //On the momment when /gi is execued
         internal CancellationTokenSource cts;
         internal CancellationToken token;
-        internal CancellationTokenSource ctsR; //refresher
-        internal CancellationToken tokenR; //refresher
-        //public event ClickedButtonHandler MethodCall;
-        //private Dictionary<string, Method> buttonAction;
         protected override void Load()
         {
             string path;
@@ -37,12 +32,6 @@ namespace ItemRestrictorAdvanced
 
                 cts = new CancellationTokenSource();
                 token = cts.Token;
-                ctsR = new CancellationTokenSource();
-                tokenR = ctsR.Token;
-
-                //buttonAction = new Dictionary<string, Method>();
-                //buttonAction.Add("buttonExit", QuitUI);
-                //buttonAction.Add("text", ClickPlayer);
 
                 path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
                 pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
@@ -105,7 +94,7 @@ namespace ItemRestrictorAdvanced
             //Console.WriteLine("Начало метода FactorialAsync"); // выполняется синхронно
             if (token.IsCancellationRequested)
                 return;
-            await Task.Run(()=>new Watcher(pathPages + @"\Pages", pathTemp).Run(path, token)); // выполняется асинхронно
+            await Task.Run(() => new Watcher(pathPages + @"\Pages", pathTemp).Run(path, token)); // выполняется асинхронно
             //Console.WriteLine("Конец метода FactorialAsync");  // выполняется синхронно
         }
 
@@ -115,8 +104,6 @@ namespace ItemRestrictorAdvanced
             cts.Cancel();
             Provider.onServerShutdown -= OnServerShutdown;
         }
-
-        
 
         [RocketCommand("ShutdownServer", "", "", AllowedCaller.Both)]
         [RocketCommandAlias("ss")]
@@ -142,7 +129,7 @@ namespace ItemRestrictorAdvanced
             //}
         }
 
-        public void LoadInventoryTo(string path, string path2)
+        internal void LoadInventoryTo(string path, string path2)
         {
             foreach (DirectoryInfo directory in new DirectoryInfo("../Players").GetDirectories())
             {
@@ -229,7 +216,7 @@ namespace ItemRestrictorAdvanced
             }
             return (myItems, pages);
         }
-        public (bool, List<MyItem>) TryAddItems(string writepath, string readpath, string readpath2)
+        internal (bool, List<MyItem>) TryAddItems(string writepath, string readpath, string readpath2)
         {
             Block block = new Block();
             block.writeByte(GetPagesCount(readpath2));//how many pages will be

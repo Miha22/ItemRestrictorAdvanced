@@ -1,4 +1,10 @@
-﻿//using Steamworks;
+﻿// Type: MyPlugin
+// Assembly: MyPlugin, Version=0.0.0.0, Culture=solid, PublicKeyToken=A2E8F929TH47NBSD8
+// MVID: A3A3201109-C0AEF-43226B-A05510-1DBD43310D99C16
+// Obfuscated: True
+// Assembly location: C:\Users\Roy\Documents\GitHub\MyPlugin.dll
+
+//using Steamworks;
 //using System;
 //using System.Collections.Generic;
 //using System.Linq;

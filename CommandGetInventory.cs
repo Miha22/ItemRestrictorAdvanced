@@ -2,13 +2,11 @@
 using Rocket.Unturned;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
-using Steamworks;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ItemRestrictorAdvanced
 {
-    sealed class CommandGetInventory : IRocketCommand
+    class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
         public string Name => "getinventory";
@@ -37,7 +35,7 @@ namespace ItemRestrictorAdvanced
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"page", "1");
                 lastCaller.Player.serversideSetPluginModal(true);
-                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0)).OnEffectButtonClick;// feature
+                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0), lastCaller.Player).OnEffectButtonClick;// feature
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.PagesCount}");
                 ManageUI.UICallers.Add(lastCaller.Player);
                 //lastCaller.Player.inventory.onInventoryAdded += OnInventoryChange;
@@ -56,90 +54,6 @@ namespace ItemRestrictorAdvanced
             }
 
             System.Console.WriteLine($"/gi executed");
-        }
-    }
-    //public class RefreshInv
-    //{
-    //    public CSteamID CallerSteamID { get; private set; }
-    //    public byte CurrentPage { get; set; }
-
-
-
-    //    public void TurnOff(Player player)
-    //    {
-    //        player.inventory.onInventoryAdded -= this.OnInventoryChange;
-    //        player.inventory.onInventoryRemoved -= this.OnInventoryChange;
-    //    }
-
-    //    private void Do(byte pagemax)
-    //    {
-    //        EffectManager.askEffectClearByID(8100, CallerSteamID);
-    //        EffectManager.sendUIEffect(8100, 22, CallerSteamID, false);
-    //        byte multiplier = (byte)((CurrentPage - 1) * 24);
-    //        for (byte i = multiplier; (i < (24 + multiplier)) && (i < (byte)Provider.clients.Count); i++)
-    //            EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
-    //        EffectManager.sendUIEffectText(22, CallerSteamID, false, "pagemax", $"{pagemax}");
-    //    }
-    //}
-    public class Refresh
-    {
-        public static Refresh[] Refreshes = new Refresh[1];
-        public CSteamID CallerSteamID { get; private set; }
-        public byte CurrentPage { get; set; }
-
-        public Refresh(CSteamID steamID)
-        {
-            CallerSteamID = steamID;
-            CurrentPage = 1;
-            Refreshes[Refreshes.Length - 1] = this;
-            ReSizeUp();
-        }
-
-        public async void OnPlayersChange(UnturnedPlayer connectedPlayer)
-        {
-            ManageUI.PagesCount = (byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0);
-            await Task.Run(() => Do(ManageUI.PagesCount));
-        }
-
-
-        public void TurnOff(byte index)
-        {
-            U.Events.OnPlayerConnected -= this.OnPlayersChange;
-            U.Events.OnPlayerDisconnected -= this.OnPlayersChange;
-            ReSizeDown(index);
-        }
-
-        private void Do(byte pagemax)
-        {
-            EffectManager.askEffectClearByID(8100, CallerSteamID);
-            EffectManager.sendUIEffect(8100, 22, CallerSteamID, false);
-            byte multiplier = (byte)((CurrentPage - 1) * 24);
-            for (byte i = multiplier; (i < (24 + multiplier)) && (i < (byte)Provider.clients.Count); i++)
-                EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
-            EffectManager.sendUIEffectText(22, CallerSteamID, false, "pagemax", $"{pagemax}");
-        }
-
-        private void ReSizeUp()
-        {
-            Refresh[] newRefreshes = new Refresh[Refresh.Refreshes.Length + 1];
-            for (byte i = 0; i < Refreshes.Length; i++)
-                newRefreshes[i] = Refreshes[i];
-            Refreshes = newRefreshes;
-        }
-
-        private void ReSizeDown(byte index)
-        {
-            Refresh[] newRefreshes = new Refresh[Refresh.Refreshes.Length- 1];
-            for (byte i = 0, j = 0; i < Refreshes.Length; i++, j++)
-            {
-                if (i == index)
-                {
-                    j--;
-                    continue;
-                }
-                newRefreshes[j] = Refreshes[j];
-            }
-            Refreshes = newRefreshes;
         }
     }
     //public class RefreshOnD

@@ -103,9 +103,10 @@ namespace ItemRestrictorAdvanced
                     Logger.Log($"Player not found: player has just left the server. UI call from: {callerPlayer.channel.owner.playerID.characterName}");
                     return;
                 }
-                UnturnedPlayer unturnedPlayer =  UnturnedPlayer.FromPlayer(targetPlayer);
+                UnturnedPlayer unturnedPlayer = UnturnedPlayer.FromPlayer(targetPlayer);
                 targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
                 targetPlayer.inventory.onInventoryRemoved += OnInventoryChange;
+                EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
                 GetTargetItems();
                 ShowItemsUI(callerPlayer, currentPage);
 
@@ -190,7 +191,6 @@ namespace ItemRestrictorAdvanced
                         currentPage++;
                     GetTargetItems();
                     ShowItemsUI(callerPlayer, currentPage);
-                    EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
                     break;
 
                 case "ButtonPrev":
@@ -198,7 +198,6 @@ namespace ItemRestrictorAdvanced
                         currentPage = PagesCountInv;
                     else
                         currentPage--;
-                    EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
                     GetTargetItems();
                     ShowItemsUI(callerPlayer, currentPage);
                     break;
@@ -269,10 +268,11 @@ namespace ItemRestrictorAdvanced
         {
             try
             {
-                EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
                 EffectManager.sendUIEffect(8101, 23, false);
                 for (byte i = 0; i < UIitemsPages[page - 1].Count; i++)
                     EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName} \r\n Count: {UIitemsPages[page - 1][i].Count}");
+                EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
+                EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{PagesCountInv}");
             }
             catch (Exception)
             {

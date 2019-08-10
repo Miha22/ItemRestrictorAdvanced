@@ -25,7 +25,7 @@ namespace ItemRestrictorAdvanced
             System.Console.WriteLine($"page: {page}, index: {index}, id: {item.item.id}");
         }
 
-        public void Execute(IRocketPlayer caller, string[] command = null)
+        public void Execute(IRocketPlayer caller, string[] command)
         {
             try
             {

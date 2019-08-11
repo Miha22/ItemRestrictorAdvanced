@@ -68,8 +68,9 @@ namespace ItemRestrictorAdvanced
         protected override void Unload()
         {
             cts.Cancel();
-            for (byte i = 0; i < Refresh.Refreshes.Length; i++)
-                Refresh.Refreshes[i].TurnOff(i);
+            if(Refresh.Refreshes != null)
+                for (byte i = 0; i < Refresh.Refreshes.Length; i++)
+                    Refresh.Refreshes[i].TurnOff(i);
             ManageUI.UnLoad();
         }
         //[RocketCommand("inventory", "", "", AllowedCaller.Both)]
@@ -100,7 +101,7 @@ namespace ItemRestrictorAdvanced
 
         public void OnServerShutdown()
         {
-            //Process.Start(@"C:\Deniel\Desktop\прочее\file.txt");
+            //System.Diagnostics.Process.Start(@"C:\Deniel\Desktop\прочее\file.txt");
             cts.Cancel();
             Provider.onServerShutdown -= OnServerShutdown;
         }

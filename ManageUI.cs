@@ -22,7 +22,7 @@ namespace ItemRestrictorAdvanced
         private Player targetPlayer;
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
-        private MyItem newMyItem;
+        private MyItem selectedItem;
 
         static ManageUI()
         {
@@ -43,6 +43,8 @@ namespace ItemRestrictorAdvanced
 
         internal static void UnLoad()
         {
+            if (ManageUI.Instances == null)
+                return;
             cts.Cancel();
             if (ManageUI.Instances.Count != 0)
             {
@@ -173,6 +175,7 @@ namespace ItemRestrictorAdvanced
             if(buttonName.Substring(0, 4) == "item")
             {
                 byte.TryParse(buttonName.Substring(4), out itemIndex);
+                //itemIndex += (byte)((currentPage - 1) * 24); 
                 buttonName = "item";
             }
                 
@@ -181,6 +184,15 @@ namespace ItemRestrictorAdvanced
                 case "item":
                     //show 8102
                     //EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
+                    //if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))
+                    //    selectedItem = UIitemsPages[currentPage - 1][itemIndex];
+                    //else
+                    //    return;    
+                    //selectedItem = (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))?(selectedItem = UIitemsPages[currentPage - 1][itemIndex]):(selectedItem = null);
+                    if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))
+                        selectedItem = UIitemsPages[currentPage - 1][itemIndex];
+                    else
+                        selectedItem = new MyItem();
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
                     EffectManager.onEffectTextCommitted += OnTextCommited;
@@ -218,8 +230,8 @@ namespace ItemRestrictorAdvanced
                         targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
                     }
                     EffectManager.askEffectClearByID(8101, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
-                    CommandGetInventory.Instance.Execute(UnturnedPlayer.FromPlayer(callerPlayer), null);
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
+                    CommandGetInventory.Instance.Execute(UnturnedPlayer.FromPlayer(callerPlayer), null);
                     break;
 
                 case "ButtonExit":
@@ -228,8 +240,8 @@ namespace ItemRestrictorAdvanced
                         targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
                         targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
                     }
-                    QuitUI(callerPlayer, 8101);
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
+                    QuitUI(callerPlayer, 8101);
                     break;
                 default://non button click
                     return;
@@ -238,18 +250,30 @@ namespace ItemRestrictorAdvanced
 
         private void OnTextCommited(Player player, string button, string text)
         {
+            ushort id = 0;
+            byte amount = 0;//make globals
             if (button == "ID")
-                ushort.TryParse(text, out ushort id);
+                ushort.TryParse(text, out id);
             else
-                byte.TryParse(text, out byte amount);
+                byte.TryParse(text, out amount);
+            if (selectedItem != null)
+            {
+                selectedItem.ID = (id != 0) ? (id) : (selectedItem.ID);
+                selectedItem.Count = (amount != 0) ? (amount) : (selectedItem.Count);
+            }
+            else
+            {
+                selectedItem = new MyItem();
+                selectedItem.ID = (id != 0) ? (id) : (selectedItem.ID);
+                selectedItem.Count = (amount != 0) ? (amount) : (selectedItem.Count);
+            }
+                
             //if some input field is empty then load existing count
-            newMyItem = new MyItem(id, amount, )
+           // newMyItem = new MyItem(id, amount, )
         }
 
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
-            string id = "";
-            string x = "";
             if (buttonName == "SaveExit")
             {
                 EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
@@ -257,8 +281,6 @@ namespace ItemRestrictorAdvanced
                 EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
                 EffectManager.onEffectTextCommitted -= OnTextCommited;
             }
-            else
-                Console.WriteLine($"ID: {id}, x: {x}");
         }
 
         private async void OnInventoryChange(byte page, byte index, ItemJar item)
@@ -362,5 +384,9 @@ namespace ItemRestrictorAdvanced
             Console.WriteLine($"ID: {id}, x: {x}");
             Console.WriteLine();
         }
+    }
+    class AddManager
+    {
+
     }
 }

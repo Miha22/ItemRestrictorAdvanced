@@ -31,7 +31,11 @@ namespace ItemRestrictorAdvanced
 
         public MyItem()
         {
-            
+            ID = 0;
+            Count = 0;
+            x = 0;
+            Quality = 0;
+            State = new byte[0];
         }
         public MyItem(ushort id, byte amount, byte quality, byte[] state)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
         {

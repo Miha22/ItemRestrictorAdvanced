@@ -10,7 +10,7 @@ namespace ItemRestrictorAdvanced
         [JsonProperty]
         public ushort ID { get; set; }
         [JsonProperty]
-        public byte Count { get; set; }
+        public ushort Count { get; set; }
         [JsonProperty]
         public byte x { get; set; }
         [JsonProperty]

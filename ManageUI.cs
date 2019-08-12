@@ -23,9 +23,9 @@ namespace ItemRestrictorAdvanced
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
         private MyItem selectedItem;
-        private MyItem backUp;
-        private ushort id;
-        private byte count;
+        private MyItem backUpItem;
+        private string id;
+        private string count;
 
         static ManageUI()
         {
@@ -180,8 +180,8 @@ namespace ItemRestrictorAdvanced
                 byte.TryParse(buttonName.Substring(4), out itemIndex);
                 //itemIndex += (byte)((currentPage - 1) * 24); 
                 buttonName = "item";
-                id = 0;
-                count = 0;
+                id = "";
+                count = "";
             }
                 
             switch (buttonName)
@@ -194,10 +194,13 @@ namespace ItemRestrictorAdvanced
                     //else
                     //    return;    
                     //selectedItem = (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))?(selectedItem = UIitemsPages[currentPage - 1][itemIndex]):(selectedItem = null);
-                    if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))
+                    if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))// editing item
+                    {
                         selectedItem = UIitemsPages[currentPage - 1][itemIndex];
+                        backUpItem = UIitemsPages[currentPage - 1][itemIndex];
+                    }
                     else
-                        selectedItem = new MyItem();
+                        selectedItem = null;// + button
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
                     EffectManager.onEffectTextCommitted += OnTextCommited;
@@ -256,9 +259,9 @@ namespace ItemRestrictorAdvanced
         private void OnTextCommited(Player player, string button, string text)
         {
             if (button == "ID")
-                ushort.TryParse(text, out id);
+                id = text;
             else
-                byte.TryParse(text, out count);
+                count = text;
                 
             //if some input field is empty then load existing count
            // newMyItem = new MyItem(id, amount, )
@@ -266,20 +269,29 @@ namespace ItemRestrictorAdvanced
 
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
-            if (selectedItem == null)
-                selectedItem = new MyItem(id, amount, 100, new byte[0]);
+            if (buttonName == "SaveExit" && selectedItem == null && id != "" && count != "")//item was removed by player or button "+" clicked
+            {
+                selectedItem = new MyItem();
+                ushort newID = Convert.ToUInt16(id);
+                ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, newID);
+                selectedItem.ID = newID;
+                selectedItem.Count = Convert.ToUInt16(count);
+                selectedItem.x = item.amount;
+                selectedItem.Quality = 100;
+                selectedItem.Size_x = item.size_x;
+                selectedItem.Size_y = item.size_y;
+            }
+            else if (buttonName == "SaveExit" && selectedItem != null && selectedItem.ID != 0)//editing item in inventory
+            {
+                selectedItem.ID = (id != "") ? Convert.ToUInt16(id) : selectedItem.ID;
+                selectedItem.Count = (count != "") ? Convert.ToUInt16(count) : selectedItem.Count;
+            }
             else
-            {
-                selectedItem.ID = id;//create item backup and give that backup amount
-            }
-                
-            if (buttonName == "SaveExit" && )
-            {
-                EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
-                EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
-                EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
-                EffectManager.onEffectTextCommitted -= OnTextCommited;
-            }
+                return;
+            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+            EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+            EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+            EffectManager.onEffectTextCommitted -= OnTextCommited;
         }
 
         private async void OnInventoryChange(byte page, byte index, ItemJar item)

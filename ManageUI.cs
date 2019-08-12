@@ -23,6 +23,9 @@ namespace ItemRestrictorAdvanced
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
         private MyItem selectedItem;
+        private MyItem backUp;
+        private ushort id;
+        private byte count;
 
         static ManageUI()
         {
@@ -177,6 +180,8 @@ namespace ItemRestrictorAdvanced
                 byte.TryParse(buttonName.Substring(4), out itemIndex);
                 //itemIndex += (byte)((currentPage - 1) * 24); 
                 buttonName = "item";
+                id = 0;
+                count = 0;
             }
                 
             switch (buttonName)
@@ -250,23 +255,10 @@ namespace ItemRestrictorAdvanced
 
         private void OnTextCommited(Player player, string button, string text)
         {
-            ushort id = 0;
-            byte amount = 0;//make globals
             if (button == "ID")
                 ushort.TryParse(text, out id);
             else
-                byte.TryParse(text, out amount);
-            if (selectedItem != null)
-            {
-                selectedItem.ID = (id != 0) ? (id) : (selectedItem.ID);
-                selectedItem.Count = (amount != 0) ? (amount) : (selectedItem.Count);
-            }
-            else
-            {
-                selectedItem = new MyItem();
-                selectedItem.ID = (id != 0) ? (id) : (selectedItem.ID);
-                selectedItem.Count = (amount != 0) ? (amount) : (selectedItem.Count);
-            }
+                byte.TryParse(text, out count);
                 
             //if some input field is empty then load existing count
            // newMyItem = new MyItem(id, amount, )
@@ -274,7 +266,14 @@ namespace ItemRestrictorAdvanced
 
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
-            if (buttonName == "SaveExit")
+            if (selectedItem == null)
+                selectedItem = new MyItem(id, amount, 100, new byte[0]);
+            else
+            {
+                selectedItem.ID = id;//create item backup and give that backup amount
+            }
+                
+            if (buttonName == "SaveExit" && )
             {
                 EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
                 EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;

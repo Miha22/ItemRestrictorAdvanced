@@ -14,16 +14,17 @@ using System.Threading;
 
 namespace ItemRestrictorAdvanced
 {
-    class ItemRestrictor : RocketPlugin<PluginConfiguration>
+    class Plugin : RocketPlugin<PluginConfiguration>
     {
-        internal static ItemRestrictor Instance;
+        internal static Plugin Instance;
         internal CancellationTokenSource cts;
         internal CancellationToken token;
+        string path;
+        string pathPages;
+        internal string pathTemp;
+
         protected override void Load()
         {
-            string path;
-            string pathPages;
-            string pathTemp;
 
             if (Configuration.Instance.Enabled)
             {

@@ -5,6 +5,7 @@ using Rocket.Unturned.Player;
 using System.Globalization;
 using Logger = Rocket.Core.Logging.Logger;
 using System.Threading;
+using System.IO;
 
 namespace ItemRestrictorAdvanced
 {
@@ -20,7 +21,7 @@ namespace ItemRestrictorAdvanced
         private byte itemIndex;
         private byte currentPage;
         private Player targetPlayer;
-        private string playerID;
+        private string playerSteamID;
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
         private MyItem selectedItem;
@@ -110,7 +111,7 @@ namespace ItemRestrictorAdvanced
                     try
                     {
                         targetPlayer = Provider.clients[playerIndex].player;
-                        playerID = targetPlayer.channel.owner.playerID.steamID.ToString();
+                        playerSteamID = targetPlayer.channel.owner.playerID.steamID.ToString();
                     }
                     catch (Exception)
                     {
@@ -273,11 +274,38 @@ namespace ItemRestrictorAdvanced
            // newMyItem = new MyItem(id, amount, )
         }
 
-        private void CreateBox(List<MyItem> items)
+        private void UploadItems(List<MyItem> items)
         {
-            string path = Plugin.Instance.pathTemp + $@"\{playerID}";
+            string path = Plugin.Instance.pathTemp + $@"\{playerSteamID}";
             List<List<MyItem>> boxes = CreateBoxes(items);
-            Block box = new Block();//aka box
+            foreach (List<MyItem> box in boxes)
+            {
+                Block block = new Block();
+                block.writeByte(1);
+                block.writeByte(10);
+                block.writeByte(6);
+                foreach (var myItem in box)
+                {
+                    block.writeByte(myItem.X);
+                    block.writeByte(myItem.Y);
+                    block.writeByte(myItem.Rot);
+                    block.writeUInt16(myItem.ID);
+                    block.writeByte(myItem.x);
+                    block.writeByte(myItem.Quality);
+                    block.writeByteArray(myItem.State ?? (new byte[0]));
+                }
+                Functions.WriteBlock(path + $"{SetBoxName(path)}", block);
+            }
+        }
+
+        private string SetBoxName(string path)
+        {
+            DirectoryInfo[] directories = new DirectoryInfo(path).GetDirectories();
+            if (directories == null)
+                return "box_0";
+
+            //Directory.CreateDirectory(path + $@"\box_{directories.Length - 1}");
+            return $"box_{directories.Length - 1}";
         }
 
         private List<List<MyItem>> CreateBoxes(List<MyItem> myItems)

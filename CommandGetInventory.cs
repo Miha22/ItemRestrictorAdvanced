@@ -12,7 +12,7 @@ namespace ItemRestrictorAdvanced
         public string Name => "getinventory";
         public string Help => "Loads some player's inventory to your inventory, after you finished edit it, it loads to that player";
         public string Syntax => "/getinventory <player>  /gi <player>";
-        public List<string> Aliases => new List<string>() { "getinventory", "gi" };
+        public List<string> Aliases => new List<string>() { "gi" };
         public List<string> Permissions => new List<string>() { "rocket.getinventory", "rocket.gi" };
         public static CommandGetInventory Instance { get; private set; }
 
@@ -20,7 +20,7 @@ namespace ItemRestrictorAdvanced
         {
             Instance = this;
         }
-        private async void OnInventoryChange(byte page, byte index, ItemJar item)
+        private void OnInventoryChange(byte page, byte index, ItemJar item)
         {
             System.Console.WriteLine($"page: {page}, index: {index}, id: {item.item.id}");
         }

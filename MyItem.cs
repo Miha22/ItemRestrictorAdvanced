@@ -48,7 +48,7 @@ namespace ItemRestrictorAdvanced
             //{
             //    State[i] = state[i];
             //}
-            State = state;
+            State = state ?? (new byte[0]);
             //Rot = rot;
             //X = x;
             //Y = y;

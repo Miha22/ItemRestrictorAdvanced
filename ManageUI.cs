@@ -292,7 +292,7 @@ namespace ItemRestrictorAdvanced
                     block.writeUInt16(myItem.ID);
                     block.writeByte(myItem.x);
                     block.writeByte(myItem.Quality);
-                    block.writeByteArray(myItem.State ?? (new byte[0]));
+                    block.writeByteArray(myItem.State);
                 }
                 Functions.WriteBlock(path + $"{SetBoxName(path)}", block);
             }

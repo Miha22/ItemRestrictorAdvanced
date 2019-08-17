@@ -13,7 +13,7 @@ namespace ItemRestrictorAdvanced
         public string Name => "closegetinventory";
         public string Help => "Loads some player's inventory to your inventory, after you finished edit it, it loads to that player";
         public string Syntax => "/closegetinventory <player>  /cgi <player>";
-        public List<string> Aliases => new List<string>() { "closegetinventory", "cgi" };
+        public List<string> Aliases => new List<string>() { "cgi" };
         public List<string> Permissions => new List<string>() { "rocket.closegetinventory", "rocket.cgi" };
 
         public void Execute(IRocketPlayer caller, string[] command)

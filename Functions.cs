@@ -23,7 +23,7 @@ namespace ItemRestrictorAdvanced
             //path = ReadWrite.PATH + path;
             if (!Directory.Exists(Path.GetDirectoryName(path)))
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
-            using (FileStream fileStream = new FileStream(path, FileMode.Append))
+            using (FileStream fileStream = new FileStream(path, FileMode.Create))
             {
                 fileStream.Write(bytes, 0, size);
                 fileStream.SetLength((long)size);

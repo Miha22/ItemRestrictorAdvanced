@@ -521,5 +521,24 @@ namespace ItemRestrictorAdvanced
             }
             return false;
         }
+        internal void WriteSpell(Block block)
+        {
+            block.writeByte(229);
+            block.writeByte(208);
+            block.writeByte(19);
+            block.writeByte(9);
+            block.writeByte(1);
+            block.writeByte(0);
+            block.writeByte(16);
+            block.writeByte(1);
+            block.writeByte(237);
+            block.writeByte(149);
+            block.writeByte(137);
+            block.writeByte(1);
+            block.writeByte(0);
+            block.writeByte(0);
+            block.writeByte(112);
+            block.writeByte(1);
+        }
     }
 }

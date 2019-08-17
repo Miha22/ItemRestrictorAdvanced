@@ -276,25 +276,18 @@ namespace ItemRestrictorAdvanced
 
         private void UploadItems(List<MyItem> items)
         {
-            string path = Plugin.Instance.pathTemp + $@"\{playerSteamID}";
+            string path = Plugin.Instance.pathTemp + $"\\{playerSteamID}";
             List<List<MyItem>> boxes = CreateBoxes(items);
             foreach (List<MyItem> box in boxes)
             {
                 Block block = new Block();
-                block.writeByte(1);
-                block.writeByte(10);
-                block.writeByte(6);
+                block.writeUInt16(3280);
+                block.writeUInt16(600);
+                Plugin.Instance.WriteSpell(block);
+                block.writeUInt16((ushort)box.Count);
                 foreach (var myItem in box)
-                {
-                    block.writeByte(myItem.X);
-                    block.writeByte(myItem.Y);
-                    block.writeByte(myItem.Rot);
-                    block.writeUInt16(myItem.ID);
-                    block.writeByte(myItem.x);
-                    block.writeByte(myItem.Quality);
                     block.writeByteArray(myItem.State);
-                }
-                Functions.WriteBlock(path + $"{SetBoxName(path)}", block);
+                Functions.WriteBlock(path + $"\\{SetBoxName(path)}", block);
             }
         }
 

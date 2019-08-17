@@ -22,7 +22,7 @@ namespace ItemRestrictorAdvanced
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
-            if (command.Length > 1)
+            if (command.Length != 1)
             {
                 Rocket.Unturned.Chat.UnturnedChat.Say(caller, U.Translate("command_generic_invalid_parameter"));
                 throw new WrongUsageOfCommandException(caller, this);
@@ -34,14 +34,21 @@ namespace ItemRestrictorAdvanced
                 Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"{command[0]} does not exist in your virtual inventory!", Color.red);
                 return;
             }
-
+            GiveBox(player, player.CSteamID.ToString(), command[0]);
         }
 
-        private static byte[] RiverToState(string steamID, string boxName)
+        private static void GiveBox(UnturnedPlayer player, string steamID, string boxName)
         {
-            River river = new River(Plugin.Instance.pathTemp + "\\" + steamID + "\\" + boxName);
-
+            Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + "\\" + steamID + "\\" + boxName, 0);
+            ushort version = block.readUInt16();
+            ushort barricadeID = block.readUInt16();
+            ushort barricadeHE = block.readUInt16();
+            byte[] numArray = block.readByteArray();
+            Item barricade = new Item(barricadeID, 1, 100, numArray);
+            player.GiveItem(barricade);
         }
+
+
     }
     class CommandBoxUp : IRocketCommand
     {
@@ -72,7 +79,7 @@ namespace ItemRestrictorAdvanced
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         return;
                     }
-                    StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + "\\" + player.CSteamID.ToString()) : command[1]);
+                    StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + "\\" + player.CSteamID.ToString()) : command[0]);
                 }
             }
         }

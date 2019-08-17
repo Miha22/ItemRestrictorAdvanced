@@ -39,21 +39,21 @@ namespace ItemRestrictorAdvanced
         }
         private static Block readBlock(string path, byte prefix)
         {
-            return readBlockRW(path, true, prefix);
+            return readBlockRW(path, prefix);
         }
-        private static Block readBlockRW(string path, bool usePath, byte prefix)
+        private static Block readBlockRW(string path, byte prefix)
         {
-            byte[] contents = readBytes(path, usePath);
+            byte[] contents = readBytes(path);
             if (contents == null)
                 return (Block)null;
             return new Block(prefix, contents);
         }
-        private static byte[] readBytes(string path, bool usePath)
+        private static byte[] readBytes(string path)
         {
             //if (useCloud)
             //    return ReadWrite.cloudFileRead(path);
-            if (usePath)
-                path = ReadWrite.PATH + path;
+            //if (usePath)
+            //    path = ReadWrite.PATH + path;
             if (!Directory.Exists(Path.GetDirectoryName(path)))
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             if (!File.Exists(path))

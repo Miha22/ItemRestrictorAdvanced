@@ -75,7 +75,7 @@ namespace ItemRestrictorAdvanced
             //    }
             //}
 
-            if (ItemRestrictor.Instance.Configuration.Instance.Groups.Any(g => IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
+            if (Plugin.Instance.Configuration.Instance.Groups.Any(g => IsPlayersGroup(caller, g) // NEW SCHOOL EXPLAINED BY DAEMONN
                                                                     && g.BlackListItems.Contains(result1)))
             {
                 UnturnedChat.Say((IRocketPlayer)player, U.Translate("command_i_blacklisted"));

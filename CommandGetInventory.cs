@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
-    class CommandGetInventory : IRocketCommand
+    public class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
         public string Name => "getinventory";

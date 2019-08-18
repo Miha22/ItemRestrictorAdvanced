@@ -35,6 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Block.cs" />
+    <Compile Include="CommandBoxUp.cs" />
     <Compile Include="CommandGetBoxes.cs" />
     <Compile Include="CommandTest.cs" />
     <Compile Include="CommandI.cs" />

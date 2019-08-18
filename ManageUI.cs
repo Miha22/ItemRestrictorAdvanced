@@ -337,6 +337,23 @@ namespace ItemRestrictorAdvanced
             return boxes;
         }
 
+        private void LoadToHeap(ItemJar item)
+        {
+            string path = Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat";
+            FileInfo file = new FileInfo(path);
+            if (!file.Exists)
+                file.Create();
+            Block block = Functions.ReadBlock(path, 0);
+            block.writeUInt16(item.item.id);
+            block.writeUInt16(item.item.amount);
+            block.writeByte(item.item.quality);
+            block.writeByte(item.rot);
+            block.writeByte(item.size_x);
+            block.writeByte(item.size_y);
+            block.writeByte((byte)item.item.state.Length);
+            block.writeByteArray(item.item.state);
+        }
+
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
             if (buttonName == "SaveExit" && selectedItem == null && id != "" && count != "")//item was removed by player or button "+" clicked
@@ -350,21 +367,35 @@ namespace ItemRestrictorAdvanced
                 selectedItem.Quality = 100;
                 selectedItem.Size_x = item.size_x;
                 selectedItem.Size_y = item.size_y;
-                targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
-                targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
-                foreach (var page in UIitemsPages)
+                selectedItem.State = item.getState(true);
+                if(targetPlayer != null)
                 {
-                    if (page.Count != 24)
+                    Item newitem = new Item(item.id, item.amount, 100, item.getState());
+                    if(!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                     {
-                        page.Add(selectedItem);
-                        // load UIItems to player inventory
-                        return;
-                    }
-                    else
-                    {
-                        //load to Vinventory
+                        Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, "player's inventory is full, loading to virtual inventory");
+
                     }
                 }
+                else
+                {
+                    // load to Inventory.dat if possible
+                }
+                //targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
+                //targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
+                //foreach (var page in UIitemsPages)
+                //{
+                //    if (page.Count != 24)
+                //    {
+                //        page.Add(selectedItem);
+                //        // load UIItems to player inventory
+                //        return;
+                //    }
+                //    else
+                //    {
+                //        //load to Vinventory
+                //    }
+                //}
             }
             else if (buttonName == "SaveExit" && selectedItem != null)//editing item in inventory
             {
@@ -480,9 +511,5 @@ namespace ItemRestrictorAdvanced
             Console.WriteLine($"ID: {id}, x: {x}");
             Console.WriteLine();
         }
-    }
-    class AddManager
-    {
-
     }
 }

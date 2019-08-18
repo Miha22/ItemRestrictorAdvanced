@@ -5,7 +5,7 @@ namespace ItemRestrictorAdvanced
 {
     class Functions
     {
-        public static void WriteBlock(string path, Block block)
+        public static void WriteBlock(string path, Block block, bool append)
         {
             int size;
             byte[] bytes = block.getBytes(out size);

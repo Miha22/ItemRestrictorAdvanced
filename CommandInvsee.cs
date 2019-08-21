@@ -6,13 +6,28 @@ using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
+    public class CommandGetVirtual : IRocketCommand
+    {
+        public AllowedCaller AllowedCaller => AllowedCaller.Player;
+        public string Name => "inventorycloud";
+        public string Help => "Shows your virtual inventory using UI";
+        public string Syntax => "/incloud";
+        public List<string> Aliases => new List<string>() { "invsee" };
+        public List<string> Permissions => new List<string>() { "rocket.inventorysee", "rocket.invsee" };
+        public static CommandGetInventory Instance { get; private set; }
+
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            byte pageCount = 
+        }
+    }
     public class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
         public string Name => "inventorysee";
         public string Help => "Shows you someone's inventory using UI";
-        public string Syntax => "/invsee <player_name_on_server>";
-        public List<string> Aliases => new List<string>() { "invsee" };
+        public string Syntax => "/invsee or /ins";
+        public List<string> Aliases => new List<string>() { "invsee", "ins" };
         public List<string> Permissions => new List<string>() { "rocket.inventorysee", "rocket.invsee" };
         public static CommandGetInventory Instance { get; private set; }
 
@@ -50,23 +65,6 @@ namespace ItemRestrictorAdvanced
             System.Console.WriteLine($"/gi executed");
         }
     }
-    //public class RefreshOnD
-    //{
-    //    private CSteamID _steamID;
-    //    public RefreshOnD(CSteamID steamID)
-    //    {
-    //        this._steamID = steamID;
-    //    }
-    //    public void Execute(UnturnedPlayer connectedPlayer)
-    //    {
-    //        EffectManager.askEffectClearByID(8100, _steamID);
-    //        EffectManager.sendUIEffect(8100, 22, _steamID, false);
-    //        for (byte i = 0; i < Provider.clients.Count; i++)
-    //            EffectManager.sendUIEffectText(22, _steamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
-
-    //        U.Events.OnPlayerDisconnected -= Execute;
-    //    }
-    //}
 }
 //Effect ID is the id parameter, key is an optional instance identifier for modifying instances of an effect, 
 //and child name is the unity name of a GameObject with a Text component.

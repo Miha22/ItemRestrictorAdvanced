@@ -24,7 +24,7 @@ namespace ItemRestrictorAdvanced
         private string playerSteamID;
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
-        private MyItem selectedItem;
+        //private MyItem selectedItem;
         //private MyItem backUpItem;
         private string id;
         private string count;
@@ -201,13 +201,14 @@ namespace ItemRestrictorAdvanced
                     //else
                     //    return;    
                     //selectedItem = (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))?(selectedItem = UIitemsPages[currentPage - 1][itemIndex]):(selectedItem = null);
-                    if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))// editing item
-                    {
-                        selectedItem = UIitemsPages[currentPage - 1][itemIndex];
-                        //backUpItem = UIitemsPages[currentPage - 1][itemIndex];
-                    }
-                    else
-                        selectedItem = null;// + button
+                    //if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))// editing item
+                    //{
+                    //    selectedItem = UIitemsPages[currentPage - 1][itemIndex];
+                    //    //backUpItem = UIitemsPages[currentPage - 1][itemIndex];
+                    //}
+                    //else
+                        //selectedItem = null;// + button
+
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
                     EffectManager.onEffectTextCommitted += OnTextCommited;
@@ -276,16 +277,18 @@ namespace ItemRestrictorAdvanced
                 Item newitem = new Item(item.id, item.amount, 100, item.getState());
                 if (targetPlayer != null)
                 {
-                    if(!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
+                    for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                     {
-                        Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, "player's inventory is full, loading to virtual inventory");
-                        Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
+                        if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
+                        {
+                            Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, "player's inventory is full, loading to virtual inventory");
+                            Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
+                        }
                     }
                 }
                 else
-                {
-                    Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
-                }
+                    for (ushort i = 0; i < Convert.ToUInt16(count); i++)
+                        Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
             }
             else
                 return;

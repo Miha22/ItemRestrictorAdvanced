@@ -39,7 +39,7 @@
     <Compile Include="CommandGetBoxes.cs" />
     <Compile Include="CommandTest.cs" />
     <Compile Include="CommandI.cs" />
-    <Compile Include="CommandGetInventory.cs" />
+    <Compile Include="CommandInvsee.cs" />
     <Compile Include="CommandUIEmergency.cs" />
     <Compile Include="CommandV.cs" />
     <Compile Include="ECharName.cs" />

@@ -214,10 +214,6 @@ namespace ItemRestrictorAdvanced
                     EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
                     break;
 
-                case "SaveExit":
-                    SaveExitAddItem(callerPlayer);
-                    break;
-
                 case "ButtonNext":
                     if (currentPage == PagesCountInv)
                         currentPage = 1;
@@ -269,141 +265,31 @@ namespace ItemRestrictorAdvanced
                 id = text;
             else
                 count = text;
-                
-            //if some input field is empty then load existing count
-           // newMyItem = new MyItem(id, amount, )
-        }
-
-        private void UploadItems(List<MyItem> items)
-        {
-            string path = Plugin.Instance.pathTemp + $"\\{playerSteamID}";
-            List<List<MyItem>> boxes = CreateBoxes(items);
-            foreach (List<MyItem> box in boxes)
-            {
-                Block block = new Block();
-                block.writeUInt16(3280);
-                block.writeUInt16(600);
-                Plugin.Instance.WriteSpell(block);
-                block.writeUInt16((ushort)box.Count);
-                foreach (var myItem in box)
-                    block.writeByteArray(myItem.State);
-                Functions.WriteBlock(path + $"\\{SetBoxName(path)}", block);
-            }
-        }
-
-        private string SetBoxName(string path)
-        {
-            DirectoryInfo[] directories = new DirectoryInfo(path).GetDirectories();
-            if (directories == null)
-                return "box_0";
-
-            //Directory.CreateDirectory(path + $@"\box_{directories.Length - 1}");
-            return $"box_{directories.Length - 1}";
-        }
-
-        private List<List<MyItem>> CreateBoxes(List<MyItem> myItems)
-        {
-            List<List<MyItem>> boxes = new List<List<MyItem>>();
-            do
-            {
-                List<MyItem> selectedItems = new List<MyItem>();
-                bool[,] page = Plugin.Instance.FillPage(10, 6);
-                foreach (var item in myItems)
-                {
-                    if ((item.Size_x > 10 && item.Size_y > 6) || (item.Size_x > 6 && item.Size_y > 10))
-                        continue;
-                    if (Plugin.Instance.FindPlace(ref page, 10, 6, item.Size_x, item.Size_y, out byte x, out byte y))
-                    {
-                        item.X = x;
-                        item.Y = y;
-                        selectedItems.Add(item);
-                        myItems.Remove(item);
-                    }
-                    else
-                    {
-                        if (Plugin.Instance.FindPlace(ref page, 6, 10, item.Size_y, item.Size_x, out byte newX, out byte newY))
-                        {
-                            item.X = newX;
-                            item.Y = newY;
-                            item.Rot = 1;
-                            selectedItems.Add(item);
-                            myItems.Remove(item);
-                        }
-                    }
-                }
-                boxes.Add(selectedItems);
-            } while (myItems.Count != 0);
-
-            return boxes;
-        }
-
-        private void LoadToHeap(ItemJar item)
-        {
-            string path = Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat";
-            FileInfo file = new FileInfo(path);
-            if (!file.Exists)
-                file.Create();
-            Block block = Functions.ReadBlock(path, 0);
-            block.writeUInt16(item.item.id);
-            block.writeUInt16(item.item.amount);
-            block.writeByte(item.item.quality);
-            block.writeByte(item.rot);
-            block.writeByte(item.size_x);
-            block.writeByte(item.size_y);
-            block.writeByte((byte)item.item.state.Length);
-            block.writeByteArray(item.item.state);
         }
 
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
-            if (buttonName == "SaveExit" && selectedItem == null && id != "" && count != "")//item was removed by player or button "+" clicked
+            if (buttonName == "SaveExit" && id != "" && count != "")//item was removed by player or button "+" clicked
             {
-                selectedItem = new MyItem();
                 ushort newID = Convert.ToUInt16(id);
                 ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, newID);
-                selectedItem.ID = newID;
-                selectedItem.Count = Convert.ToUInt16(count);
-                selectedItem.x = item.amount;
-                selectedItem.Quality = 100;
-                selectedItem.Size_x = item.size_x;
-                selectedItem.Size_y = item.size_y;
-                selectedItem.State = item.getState(true);
-                if(targetPlayer != null)
+                Item newitem = new Item(item.id, item.amount, 100, item.getState());
+                if (targetPlayer != null)
                 {
-                    Item newitem = new Item(item.id, item.amount, 100, item.getState());
                     if(!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                     {
                         Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, "player's inventory is full, loading to virtual inventory");
-
+                        Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
                     }
                 }
                 else
                 {
-                    // load to Inventory.dat if possible
+                    Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
                 }
-                //targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
-                //targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
-                //foreach (var page in UIitemsPages)
-                //{
-                //    if (page.Count != 24)
-                //    {
-                //        page.Add(selectedItem);
-                //        // load UIItems to player inventory
-                //        return;
-                //    }
-                //    else
-                //    {
-                //        //load to Vinventory
-                //    }
-                //}
-            }
-            else if (buttonName == "SaveExit" && selectedItem != null)//editing item in inventory
-            {
-                selectedItem.ID = (id != "") ? Convert.ToUInt16(id) : selectedItem.ID;
-                selectedItem.Count = (count != "") ? Convert.ToUInt16(count) : selectedItem.Count;
             }
             else
                 return;
+
             EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
             EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
             EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
@@ -420,21 +306,21 @@ namespace ItemRestrictorAdvanced
             //ShowItemsUI(this.callerPlayer, currentPage);
         }
 
-        private void ShowItemsUI(Player callerPlayer, byte page)//target player idnex in provider.clients
+        private void ShowItemsUI(Player callPlayer, byte page)//target player idnex in provider.clients
         {
             try
             {
-                EffectManager.sendUIEffect(8101, 23, callerPlayer.channel.owner.playerID.steamID, false);
+                EffectManager.sendUIEffect(8101, 23, callPlayer.channel.owner.playerID.steamID, false);
                 if(UIitemsPages[page - 1].Count != 0)
                     for (byte i = 0; i < UIitemsPages[page - 1].Count; i++)
-                        EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName} \r\n Count: {UIitemsPages[page - 1][i].Count}");
-                EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
-                EffectManager.sendUIEffectText(23, callerPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{PagesCountInv}");
+                        EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName} \r\n Count: {UIitemsPages[page - 1][i].Count}");
+                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
+                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{PagesCountInv}");
             }
             catch (Exception)
             {
                 Console.WriteLine("exception in show ui");
-                QuitUI(callerPlayer, 8101);
+                QuitUI(callPlayer, 8101);
                 return;
             }
         }

@@ -9,20 +9,16 @@ namespace ItemRestrictorAdvanced
     public class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
-        public string Name => "getinventory";
-        public string Help => "Loads some player's inventory to your inventory, after you finished edit it, it loads to that player";
-        public string Syntax => "/getinventory <player>  /gi <player>";
-        public List<string> Aliases => new List<string>() { "gi" };
-        public List<string> Permissions => new List<string>() { "rocket.getinventory", "rocket.gi" };
+        public string Name => "inventorysee";
+        public string Help => "Shows you someone's inventory using UI";
+        public string Syntax => "/invsee <player_name_on_server>";
+        public List<string> Aliases => new List<string>() { "invsee" };
+        public List<string> Permissions => new List<string>() { "rocket.inventorysee", "rocket.invsee" };
         public static CommandGetInventory Instance { get; private set; }
 
         public CommandGetInventory()
         {
             Instance = this;
-        }
-        private void OnInventoryChange(byte page, byte index, ItemJar item)
-        {
-            System.Console.WriteLine($"page: {page}, index: {index}, id: {item.item.id}");
         }
 
         public void Execute(IRocketPlayer caller, string[] command)
@@ -38,15 +34,13 @@ namespace ItemRestrictorAdvanced
                 EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling((double)Provider.clients.Count / 24.0), lastCaller.Player).OnEffectButtonClick;// feature
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.PagesCount}");
                 ManageUI.UICallers.Add(lastCaller.Player);
-                //lastCaller.Player.inventory.onInventoryAdded += OnInventoryChange;
-                //lastCaller.Player.inventory.onInventoryRemoved += OnInventoryChange;
 
                 U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;
                 U.Events.OnPlayerDisconnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
-                System.Console.WriteLine("EXCEPTION IN GI EXECUTE!");
+                Rocket.Core.Logging.Logger.LogException(e, $"Exception in Invsee: caller: {caller.DisplayName}");
                 for (byte i = 0; i < Refresh.Refreshes.Length; i++)
                 {
                     Refresh.Refreshes[i].TurnOff(i);

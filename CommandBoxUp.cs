@@ -50,7 +50,7 @@ namespace ItemRestrictorAdvanced
             block.writeUInt16(barricade.health);
             Plugin.Instance.WriteSpell(block);
             block.writeByteArray(barricade.state);
-            Functions.WriteBlock(Plugin.Instance.pathTemp + "\\" + steamID.ToString() + "\\" + boxName, block);
+            Functions.WriteBlock(Plugin.Instance.pathTemp + "\\" + steamID.ToString() + "\\" + boxName, block, false);
         }
 
         private string SetBoxName(string path)
@@ -61,6 +61,59 @@ namespace ItemRestrictorAdvanced
 
             //Directory.CreateDirectory(path + $@"\box_{directories.Length - 1}");
             return $"box_{directories.Length - 1}";
+        }
+
+        private void UploadItems(List<MyItem> items, string playerSteamID)
+        {
+            string path = Plugin.Instance.pathTemp + $"\\{playerSteamID}";
+            List<List<MyItem>> boxes = CreateBoxes(items);
+            foreach (List<MyItem> box in boxes)
+            {
+                Block block = new Block();
+                block.writeUInt16(3280);
+                block.writeUInt16(600);
+                Plugin.Instance.WriteSpell(block);
+                block.writeUInt16((ushort)box.Count);
+                foreach (var myItem in box)
+                    block.writeByteArray(myItem.State);
+                Functions.WriteBlock(path + $"\\{SetBoxName(path)}", block, false);
+            }
+        }
+
+        private List<List<MyItem>> CreateBoxes(List<MyItem> myItems)
+        {
+            List<List<MyItem>> boxes = new List<List<MyItem>>();
+            do
+            {
+                List<MyItem> selectedItems = new List<MyItem>();
+                bool[,] page = Plugin.Instance.FillPage(10, 6);
+                foreach (var item in myItems)
+                {
+                    if ((item.Size_x > 10 && item.Size_y > 6) || (item.Size_x > 6 && item.Size_y > 10))
+                        continue;
+                    if (Plugin.Instance.FindPlace(ref page, 10, 6, item.Size_x, item.Size_y, out byte x, out byte y))
+                    {
+                        item.X = x;
+                        item.Y = y;
+                        selectedItems.Add(item);
+                        myItems.Remove(item);
+                    }
+                    else
+                    {
+                        if (Plugin.Instance.FindPlace(ref page, 6, 10, item.Size_y, item.Size_x, out byte newX, out byte newY))
+                        {
+                            item.X = newX;
+                            item.Y = newY;
+                            item.Rot = 1;
+                            selectedItems.Add(item);
+                            myItems.Remove(item);
+                        }
+                    }
+                }
+                boxes.Add(selectedItems);
+            } while (myItems.Count != 0);
+
+            return boxes;
         }
     }
 }

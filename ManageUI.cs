@@ -316,7 +316,7 @@ namespace ItemRestrictorAdvanced
                 EffectManager.sendUIEffect(8101, 23, callPlayer.channel.owner.playerID.steamID, false);
                 if(UIitemsPages[page - 1].Count != 0)
                     for (byte i = 0; i < UIitemsPages[page - 1].Count; i++)
-                        EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName} \r\n Count: {UIitemsPages[page - 1][i].Count}");
+                        EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName}\r\nID: {UIitemsPages[page - 1][i].ID}\r\nCount: {UIitemsPages[page - 1][i].Count}");
                 EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
                 EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{PagesCountInv}");
             }

@@ -1,5 +1,6 @@
 ﻿using SDG.Unturned;
 using System.IO;
+using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
@@ -80,13 +81,45 @@ namespace ItemRestrictorAdvanced
         {
             Block block = new Block();
             block.writeUInt16(item.id);
-            block.writeUInt16(item.amount);
+            block.writeByte(item.amount);
             block.writeByte(item.quality);
             block.writeUInt16((ushort)item.state.Length);
             foreach (byte bite in item.state)
                 block.writeByte(bite);
 
             WriteBlock(pathHeap, UniteBlocks(block, pathHeap), true);
+        }
+
+        public static (List<List<MyItem>>, byte) GetMyItems(Block block)
+        {
+            List<List<MyItem>> myItemsPages = new List<List<MyItem>>();
+            List<MyItem> myItems = new List<MyItem>();
+            ushort itemsCount = (ushort)(block.readByte() + (256 * block.readByte()));
+            byte pagesCount = (byte)System.Math.Ceiling(itemsCount / 24.0);
+            for (ushort i = 0; i < itemsCount; i++)
+            {
+                ushort id = block.readUInt16();
+                byte amount = block.readByte();
+                byte quality = block.readByte();
+                ushort len = block.readUInt16();
+                byte[] state = new byte[len];
+                for (ushort j = 0; j < len; j++)
+                    state[j] = block.readByte();
+                myItems.Add(new MyItem(id, amount, quality, state));
+            }
+
+            for (byte i = 0; i < pagesCount; i++)
+            {
+                List<MyItem> items = new List<MyItem>();
+                for (ushort j = 0; j < 24 && j < myItems.Count; j++)
+                {
+                    items.Add(myItems[j]);
+                    myItems.RemoveAt(j);
+                }
+                myItemsPages.Add(items);
+            }
+
+            return (myItemsPages, pagesCount);
         }
     }
 }

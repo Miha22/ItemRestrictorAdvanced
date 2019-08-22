@@ -6,38 +6,27 @@ using System.Collections.Generic;
 
 namespace ItemRestrictorAdvanced
 {
-    public class CommandGetVirtual : IRocketCommand
+    class ManageCloudUI
     {
-        public AllowedCaller AllowedCaller => AllowedCaller.Player;
-        public string Name => "incloud";
-        public string Help => "Shows your virtual inventory using UI";
-        public string Syntax => "/incloud";
-        public List<string> Aliases => new List<string>() { "invsee" };
-        public List<string> Permissions => new List<string>() { "rocket.incloud", "rocket.inc"};
-        public static CommandGetInventory Instance { get; private set; }
+        byte itemIndex;
+        byte pagesCount;
+        byte currentPage;
+        Item selectedItem;
+        List<List<MyItem>> MyItemsPages;
 
-        public void Execute(IRocketPlayer caller, string[] command)
+        public ManageCloudUI((List<List<MyItem>>, byte) tuple)
         {
-            UnturnedPlayer player = (UnturnedPlayer)caller;
-            Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $"\\{player.CSteamID}\\Heap.dat", 0);
-            if(block.block.Length == 0)
-            {
-                Rocket.Unturned.Chat.UnturnedChat.Say(caller, "You do not have a cloud inventory");
-                return;
-            }
-            byte currentPage = 1;
-            (List<List<MyItem>> myItemsPages, byte pagesCount) = Functions.GetMyItems(block);
-            EffectManager.sendUIEffect(8101, 25, player.CSteamID, false);
-            for (byte i = 0; i < myItemsPages[pagesCount - 1].Count; i++)
-                EffectManager.sendUIEffectText(25, player.CSteamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, myItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {myItemsPages[pagesCount - 1][i].ID}\r\nCount: {myItemsPages[pagesCount - 1][i].Count}");
-
+            currentPage = 1;
+            MyItemsPages = tuple.Item1;
+            pagesCount = tuple.Item2;
         }
+
         public void OnEffectButtonClick8101(Player callerPlayer, string buttonName)
         {
             if (buttonName.Substring(0, 4) == "item")
             {
-                byte.TryParse(buttonName.Substring(4), out byte itemIndex);
-                //itemIndex += (byte)((currentPage - 1) * 24); 
+                byte.TryParse(buttonName.Substring(4), out itemIndex);
+                itemIndex += (byte)((currentPage - 1) * 24);
                 buttonName = "item";
             }
 
@@ -60,13 +49,13 @@ namespace ItemRestrictorAdvanced
                     //selectedItem = null;// + button
 
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
-                    EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
-                    EffectManager.onEffectTextCommitted += OnTextCommited;
-                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
+                    //EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
+                    //EffectManager.onEffectTextCommitted += OnTextCommited;
+                    //EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
                     break;
 
                 case "ButtonNext":
-                    if (currentPage == PagesCountInv)
+                    if (currentPage == pagesCount)
                         currentPage = 1;
                     else
                         currentPage++;
@@ -77,7 +66,7 @@ namespace ItemRestrictorAdvanced
 
                 case "ButtonPrev":
                     if (currentPage == 1)
-                        currentPage = PagesCountInv;
+                        currentPage = pagesCount;
                     else
                         currentPage--;
                     GetTargetItems();
@@ -108,6 +97,34 @@ namespace ItemRestrictorAdvanced
                 default://non button click
                     return;
             }
+        }
+    }
+    public class CommandGetVirtual : IRocketCommand
+    {
+        public AllowedCaller AllowedCaller => AllowedCaller.Player;
+        public string Name => "incloud";
+        public string Help => "Shows your virtual inventory using UI";
+        public string Syntax => "/incloud";
+        public List<string> Aliases => new List<string>() { "invsee" };
+        public List<string> Permissions => new List<string>() { "rocket.incloud", "rocket.inc"};
+        public static CommandGetInventory Instance { get; private set; }
+
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            UnturnedPlayer player = (UnturnedPlayer)caller;
+            Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $"\\{player.CSteamID}\\Heap.dat", 0);
+            if (block.block.Length == 0)
+            {
+                Rocket.Unturned.Chat.UnturnedChat.Say(caller, "You do not have a cloud inventory");
+                return;
+            }
+            byte currentPage = 1;
+            (List<List<MyItem>> myItemsPages, byte pagesCount) = Functions.GetMyItems(block);
+            EffectManager.sendUIEffect(8101, 25, player.CSteamID, false);
+            for (byte i = 0; i < myItemsPages[pagesCount - 1].Count; i++)
+                EffectManager.sendUIEffectText(25, player.CSteamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, myItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {myItemsPages[pagesCount - 1][i].ID}\r\nCount: {myItemsPages[pagesCount - 1][i].Count}");
+            EffectManager.onEffectButtonClicked += this.OnEffectButtonClick8101;
+
         }
     }
     public class CommandGetInventory : IRocketCommand

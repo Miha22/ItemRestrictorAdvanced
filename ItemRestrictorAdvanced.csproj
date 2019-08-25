@@ -37,6 +37,7 @@
     <Compile Include="Block.cs" />
     <Compile Include="CommandBoxUp.cs" />
     <Compile Include="CommandGetBoxes.cs" />
+    <Compile Include="CommandGetVirtual.cs" />
     <Compile Include="CommandTest.cs" />
     <Compile Include="CommandI.cs" />
     <Compile Include="CommandInvsee.cs" />
@@ -49,6 +50,7 @@
     <Compile Include="EIgnore.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="Liquidation.cs" />
+    <Compile Include="ManageCloudUI.cs" />
     <Compile Include="ManageUI.cs" />
     <Compile Include="MyConverter.cs" />
     <Compile Include="MyEffectManager.cs" />

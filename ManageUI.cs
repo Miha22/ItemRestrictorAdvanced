@@ -24,8 +24,6 @@ namespace ItemRestrictorAdvanced
         private string playerSteamID;
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
-        //private MyItem selectedItem;
-        //private MyItem backUpItem;
         private string id;
         private string count;
 

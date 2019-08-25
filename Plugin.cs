@@ -294,7 +294,7 @@ namespace ItemRestrictorAdvanced
                     //block.writeByteArray(itemJar == null ? new byte[0] : itemJar.item.state);
                 }
             }
-            Functions.WriteBlock(writepath, block);
+            Functions.WriteBlock(writepath, block, false);
             return (true, myItems);
         }
         private (List<MyItem>, List<MyItem>) SelectItems(byte width, byte height, List<MyItem> myItems)// for page

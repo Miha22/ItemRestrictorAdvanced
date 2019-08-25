@@ -27,7 +27,7 @@ namespace ItemRestrictorAdvanced
                 throw new WrongUsageOfCommandException(caller, this);
             }
             UnturnedPlayer player = (UnturnedPlayer)caller;
-            if (Physics.Raycast(player.Player.look.aim.position, player.Player.look.aim.forward, out RaycastHit hit, 5, RayMasks.BARRICADE_INTERACT))
+            if (Physics.Raycast(player.Player.look.aim.position, player.Player.look.aim.forward, out RaycastHit hit, 4, RayMasks.BARRICADE_INTERACT))
             {
                 if (BarricadeManager.tryGetInfo(hit.transform, out byte x, out byte y, out ushort plant, out ushort index, out BarricadeRegion r))
                 {
@@ -38,7 +38,10 @@ namespace ItemRestrictorAdvanced
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         return;
                     }
-                    StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + "\\" + player.CSteamID.ToString()) : command[0]);
+                    StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    //r.barricades[index].barricade.state = new byte[0];
+                    //BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
+                    
                 }
             }
         }
@@ -55,12 +58,13 @@ namespace ItemRestrictorAdvanced
 
         private string SetBoxName(string path)
         {
-            DirectoryInfo[] directories = new DirectoryInfo(path).GetDirectories();
-            if (directories == null)
-                return "box_0";
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists)
+                directory.Create();
+            DirectoryInfo[] directories = directory.GetDirectories();
 
             //Directory.CreateDirectory(path + $@"\box_{directories.Length - 1}");
-            return $"box_{directories.Length - 1}";
+            return $"box_{directories.Length}.dat";
         }
 
         //private void UploadItems(List<MyItem> items, string playerSteamID)

@@ -11,14 +11,13 @@ namespace ItemRestrictorAdvanced
         byte itemIndex;
         byte pagesCount;
         byte currentPage;
-        Item selectedItem;
         List<List<MyItem>> MyItemsPages;
 
-        public ManageCloudUI((List<List<MyItem>>, byte) tuple)
+        public ManageCloudUI(List<List<MyItem>> myItemsPages, byte pagesCount)
         {
             currentPage = 1;
-            MyItemsPages = tuple.Item1;
-            pagesCount = tuple.Item2;
+            MyItemsPages = myItemsPages;
+            this.pagesCount = pagesCount;
         }
 
         public void OnEffectButtonClick8101(Player callerPlayer, string buttonName)
@@ -26,32 +25,19 @@ namespace ItemRestrictorAdvanced
             if (buttonName.Substring(0, 4) == "item")
             {
                 byte.TryParse(buttonName.Substring(4), out itemIndex);
-                itemIndex += (byte)((currentPage - 1) * 24);
+                //itemIndex += (byte)((currentPage - 1) * 24);
                 buttonName = "item";
             }
 
             switch (buttonName)
             {
                 case "item":
-                    //show 8102
-                    //EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
-                    //if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))
-                    //    selectedItem = UIitemsPages[currentPage - 1][itemIndex];
-                    //else
-                    //    return;    
-                    //selectedItem = (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))?(selectedItem = UIitemsPages[currentPage - 1][itemIndex]):(selectedItem = null);
-                    //if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))// editing item
-                    //{
-                    //    selectedItem = UIitemsPages[currentPage - 1][itemIndex];
-                    //    //backUpItem = UIitemsPages[currentPage - 1][itemIndex];
-                    //}
-                    //else
-                    //selectedItem = null;// + button
-
-                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
-                    //EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
-                    //EffectManager.onEffectTextCommitted += OnTextCommited;
-                    //EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
+                    if((itemIndex + 1) <= MyItemsPages[currentPage - 1].Count)
+                    {
+                        MyItem myItem = MyItemsPages[currentPage - 1][itemIndex];
+                        for (byte i = 0; i < myItem.Count; i++)
+                            callerPlayer.inventory.tryAddItemAuto(new Item(myItem.ID, myItem.X, myItem.Quality, myItem.State), false, false, false, false);
+                    }                  
                     break;
 
                 case "ButtonNext":
@@ -59,7 +45,6 @@ namespace ItemRestrictorAdvanced
                         currentPage = 1;
                     else
                         currentPage++;
-                    GetTargetItems();
                     EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
                     ShowItemsUI(callerPlayer, currentPage);
                     break;
@@ -69,28 +54,14 @@ namespace ItemRestrictorAdvanced
                         currentPage = pagesCount;
                     else
                         currentPage--;
-                    GetTargetItems();
                     EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
                     ShowItemsUI(callerPlayer, currentPage);
                     break;
 
                 case "MainPage":
-                    if (targetPlayer != null)
-                    {
-                        targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
-                        targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
-                    }
-                    EffectManager.askEffectClearByID(8101, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
-                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
-                    CommandGetInventory.Instance.Execute(UnturnedPlayer.FromPlayer(callerPlayer), null);
-                    break;
+                    goto case "ButtonPrev";
 
                 case "ButtonExit":
-                    if (targetPlayer != null)
-                    {
-                        targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
-                        targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
-                    }
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
                     QuitUI(callerPlayer, 8101);
                     break;
@@ -98,16 +69,47 @@ namespace ItemRestrictorAdvanced
                     return;
             }
         }
+        private void ShowItemsUI(Player callPlayer, byte page)//target player idnex in provider.clients
+        {
+            try
+            {
+                EffectManager.sendUIEffect(8101, 26, callPlayer.channel.owner.playerID.steamID, false);
+                if (MyItemsPages[page - 1].Count != 0)
+                    for (byte i = 0; i < MyItemsPages[page - 1].Count; i++)
+                        EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, MyItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {MyItemsPages[pagesCount - 1][i].ID}\r\nCount: {MyItemsPages[pagesCount - 1][i].Count}");
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{pagesCount}");
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "playerName", $"Cloud: {callPlayer.channel.owner.playerID.characterName}");
+            }
+            catch (System.Exception e)
+            {
+                Rocket.Core.Logging.Logger.LogException(e, "Exception in ManageCloudUI.ShowItemsUI(Player, byte)");
+                QuitUI(callPlayer, 8101);
+                return;
+            }
+        }
+        private void ReturnLoad(List<List<MyItem>> myItems)
+        {
+            Block block = new Block();
+        }
+        private void QuitUI(Player callerPlayer, ushort effectId)
+        {
+            EffectManager.askEffectClearByID(effectId, callerPlayer.channel.owner.playerID.steamID);
+            callerPlayer.serversideSetPluginModal(false);
+            //ManageUI.UICallers.Remove(callerPlayer);
+            System.Console.WriteLine($"caller: {callerPlayer.channel.owner.playerID.characterName} removed from list!");
+            MyItemsPages.Clear();
+        }
     }
+
     public class CommandGetVirtual : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
         public string Name => "incloud";
         public string Help => "Shows your virtual inventory using UI";
-        public string Syntax => "/incloud";
-        public List<string> Aliases => new List<string>() { "invsee" };
+        public string Syntax => "/incloud or /inc";
+        public List<string> Aliases => new List<string>() { "inc" };
         public List<string> Permissions => new List<string>() { "rocket.incloud", "rocket.inc"};
-        public static CommandGetInventory Instance { get; private set; }
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
@@ -115,25 +117,29 @@ namespace ItemRestrictorAdvanced
             Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $"\\{player.CSteamID}\\Heap.dat", 0);
             if (block.block.Length == 0)
             {
-                Rocket.Unturned.Chat.UnturnedChat.Say(caller, "You do not have a cloud inventory");
+                Rocket.Unturned.Chat.UnturnedChat.Say(caller, "You do not have items in cloud inventory!");
                 return;
             }
-            byte currentPage = 1;
             (List<List<MyItem>> myItemsPages, byte pagesCount) = Functions.GetMyItems(block);
-            EffectManager.sendUIEffect(8101, 25, player.CSteamID, false);
-            for (byte i = 0; i < myItemsPages[pagesCount - 1].Count; i++)
-                EffectManager.sendUIEffectText(25, player.CSteamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, myItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {myItemsPages[pagesCount - 1][i].ID}\r\nCount: {myItemsPages[pagesCount - 1][i].Count}");
-            EffectManager.onEffectButtonClicked += this.OnEffectButtonClick8101;
-
+            EffectManager.sendUIEffect(8101, 26, player.CSteamID, false);
+            for (byte i = 0; i < pagesCount; i++)
+                for (byte j = 0; j < myItemsPages[i].Count; j++)
+                    EffectManager.sendUIEffectText(26, player.CSteamID, false, $"item{j}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, myItemsPages[i][j].ID)).itemName}\r\nID: {myItemsPages[i][j].ID}\r\nCount: {myItemsPages[j][i].Count}");
+            for (byte i = (byte)(myItemsPages[pagesCount - 1].Count); i < 24; i++)
+                EffectManager.sendUIEffectText(26, player.CSteamID, false, $"item{i}", $"");
+            EffectManager.sendUIEffectText(26, player.CSteamID, false, "playerName", $"Cloud: {player.CharacterName}");
+            EffectManager.onEffectButtonClicked += new ManageCloudUI(myItemsPages, pagesCount).OnEffectButtonClick8101;
+            player.Player.serversideSetPluginModal(true);  
         }
     }
+
     public class CommandGetInventory : IRocketCommand
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Player;
         public string Name => "invsee";
         public string Help => "Shows you someone's inventory using UI";
         public string Syntax => "/invsee or /ins";
-        public List<string> Aliases => new List<string>() { "invsee", "ins" };
+        public List<string> Aliases => new List<string>() { "ins" };
         public List<string> Permissions => new List<string>() { "rocket.invsee", "rocket.ins" };
         public static CommandGetInventory Instance { get; private set; }
 

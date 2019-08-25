@@ -382,7 +382,7 @@ namespace ItemRestrictorAdvanced
 
         private void QuitUI(Player callerPlayer, ushort effectId)
         {
-            EffectManager.askEffectClearByID(effectId, UnturnedPlayer.FromPlayer(callerPlayer).CSteamID);
+            EffectManager.askEffectClearByID(effectId, callerPlayer.channel.owner.playerID.steamID);
             callerPlayer.serversideSetPluginModal(false);
             ManageUI.UICallers.Remove(callerPlayer);
             Console.WriteLine($"caller: {callerPlayer.channel.owner.playerID.characterName} removed from list!");

@@ -25,10 +25,9 @@ namespace ItemRestrictorAdvanced
             }
             (List<List<MyItem>> myItemsPages, byte pagesCount) = Functions.GetMyItems(block);
             EffectManager.sendUIEffect(8101, 26, player.CSteamID, false);
-            for (byte i = 0; i < pagesCount; i++)
-                for (byte j = 0; j < myItemsPages[i].Count; j++)
-                    EffectManager.sendUIEffectText(26, player.CSteamID, false, $"item{j}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, myItemsPages[i][j].ID)).itemName}\r\nID: {myItemsPages[i][j].ID}\r\nCount: {myItemsPages[j][i].Count}");
-            for (byte i = (byte)(myItemsPages[pagesCount - 1].Count); i < 24; i++)
+            for (byte i = 0; i < myItemsPages[0].Count; i++)
+                EffectManager.sendUIEffectText(26, player.CSteamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, myItemsPages[0][i].ID)).itemName}\r\nID: {myItemsPages[0][i].ID}\r\nCount: {myItemsPages[0][i].Count}");
+            for (byte i = (byte)myItemsPages[0].Count; i < 24; i++)
                 EffectManager.sendUIEffectText(26, player.CSteamID, false, $"item{i}", $"");
             EffectManager.sendUIEffectText(26, player.CSteamID, false, "playerName", $"Cloud: {player.CharacterName}");
             EffectManager.onEffectButtonClicked += new ManageCloudUI(myItemsPages, pagesCount).OnEffectButtonClick8101;

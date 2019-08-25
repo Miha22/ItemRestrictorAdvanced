@@ -32,8 +32,8 @@ namespace ItemRestrictorAdvanced
                     if((itemIndex + 1) <= MyItemsPages[currentPage - 1].Count)
                     {
                         MyItem myItem = MyItemsPages[currentPage - 1][itemIndex];
-                        for (byte i = 0; i < myItem.Count; i++)
-                            callerPlayer.inventory.tryAddItemAuto(new Item(myItem.ID, myItem.X, myItem.Quality, myItem.State), false, false, false, false);
+                        callerPlayer.inventory.tryAddItemAuto(new Item(myItem.ID, myItem.X, myItem.Quality, myItem.State), false, false, false, false);
+                        MyItemsPages[currentPage - 1][itemIndex].Count--;
                     }                  
                     break;
 
@@ -75,6 +75,8 @@ namespace ItemRestrictorAdvanced
                 if (MyItemsPages[page - 1].Count != 0)
                     for (byte i = 0; i < MyItemsPages[page - 1].Count; i++)
                         EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, MyItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {MyItemsPages[pagesCount - 1][i].ID}\r\nCount: {MyItemsPages[pagesCount - 1][i].Count}");
+                for (byte i = (byte)MyItemsPages[0].Count; i < 24; i++)
+                    EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"");
                 EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
                 EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{pagesCount}");
                 EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "playerName", $"Cloud: {callPlayer.channel.owner.playerID.characterName}");

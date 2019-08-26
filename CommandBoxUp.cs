@@ -15,7 +15,7 @@ namespace ItemRestrictorAdvanced
         public string Name => "sendbox";
         public string Help => "watch on special loot box and execute /sendbox or /sendbox <prefered box name>";
         public string Syntax => "/sendbox or /sendbox <name of your box>";
-        public List<string> Aliases => new List<string>() { "db" };
+        public List<string> Aliases => new List<string>() { "sb" };
         public List<string> Permissions => new List<string>() { "rocket.sendbox", "rocket.sb" };
         //string path = Plugin.Instance.pathTemp;
 
@@ -38,10 +38,41 @@ namespace ItemRestrictorAdvanced
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         return;
                     }
+
+                    //System.Console.WriteLine("point 0");
+                    List<RegionCoordinate> regionCoordinates = null;
+                    List<InteractableItem> interactableItems = null;
+                    ItemManager.getItemsInRadius(hit.transform.position, (float)1, regionCoordinates, interactableItems);
+                    ItemRegion region = ItemManager.regions[(int)x, (int)y];
+                    for (ushort ind = 0; (int)ind < region.drops.Count; ++ind)
+                    {
+                        foreach (var item in interactableItems)
+                        {
+                            if ((int)region.drops[(int)ind].instanceID == (int)item.GetInstanceID())
+                            {
+                                if (ItemManager.onItemDropRemoved != null)
+                                    ItemManager.onItemDropRemoved(region.drops[(int)ind].model, region.drops[(int)ind].interactableItem);
+                                Object.Destroy((Object)region.drops[(int)ind].model.gameObject);
+                                region.drops.RemoveAt((int)ind);
+                                //break;
+                            }
+                        }
+                    }
+                    //r.drops.Clear();
+                    //Object.Destroy(hit.transform.gameObject);
+                    //BarricadeManager.salvageBarricade(hit.transform);
+                    //System.Console.WriteLine("point 1");
+                    //BarricadeManager.instance.channel.send("tellTakeBarricade", ESteamCall.ALL, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
+                    //BarricadeManager.instance.channel.send("tellTakeBarricade", ESteamCall.ALL, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
+                    //BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
+                    //BarricadeManager.clearPlants();
+                    //BarricadeManager.instance.channel.send("askSalvageBarricade", ESteamCall.SERVER, ESteamPacket.UPDATE_UNRELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
+                    //System.Console.WriteLine("point 2");
                     StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    System.Console.WriteLine("point 3");
                     //r.barricades[index].barricade.state = new byte[0];
                     //BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
-                    
+                    //Object.Destroy(hit.transform.gameObject);
                 }
             }
         }

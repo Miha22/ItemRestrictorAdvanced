@@ -36,66 +36,26 @@ namespace ItemRestrictorAdvanced
                     {
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Error occured: this barricade is not a virtual inventory box or box is not yours.", Color.red);
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
-                        return;
+                        //return;
                     }
-
-                    //System.Console.WriteLine("point 0");
-                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
-                    //List<RegionCoordinate> regionCoordinates = new List<RegionCoordinate>();
-                    List<InteractableItem> interactableItems = new List<InteractableItem>();
-                    Vector3 center = hit.transform.position;
-                    float sqrRadius = 2;
-                    BarricadeManager.tryGetRegion(hit.transform, out byte _x, out byte _y, out ushort _plant, out BarricadeRegion _region);
-                    RegionCoordinate regionCoordinate = new RegionCoordinate(_x, _y);
-                    if (ItemManager.regions[(int)regionCoordinate.x, (int)regionCoordinate.y] != null)
-                    {
-                        System.Console.WriteLine("point 0");
-                        System.Console.WriteLine($"ItemManager.regions[_x, _y].drops.Count: {ItemManager.regions[_x, _y].drops.Count}");
-                        for (int index2 = 0; index2 < ItemManager.regions[_x, _y].drops.Count; ++index2)
-                        {
-                            System.Console.WriteLine("point 1");
-                            ItemDrop drop = ItemManager.regions[(int)regionCoordinate.x, (int)regionCoordinate.y].drops[index2];
-                            if ((double)(drop.model.position - center).sqrMagnitude < (double)sqrRadius)
-                                interactableItems.Add(drop.interactableItem);
-                        }
-                        System.Console.WriteLine("point 2");
-                    }
-                    else
-                        System.Console.WriteLine("Item manager region is null");
-
-                    //ItemManager.getItemsInRadius(bdata.point, (float)4, regionCoordinates, interactableItems);
-                    //System.Console.WriteLine($"regionCoordinates: {regionCoordinates.Count}");
-                    System.Console.WriteLine($"interactableItems: {interactableItems.Count}");
-                    ItemRegion region = ItemManager.regions[(int)x, (int)y];
-                    for (ushort ind = 0; (int)ind < region.drops.Count; ++ind)
-                    {
-                        foreach (var item in interactableItems)
-                        {
-                            if ((int)region.drops[(int)ind].instanceID == (int)item.GetInstanceID())
-                            {
-                                if (ItemManager.onItemDropRemoved != null)
-                                    ItemManager.onItemDropRemoved(region.drops[(int)ind].model, region.drops[(int)ind].interactableItem);
-                                Object.Destroy((Object)region.drops[(int)ind].model.gameObject);
-                                region.drops.RemoveAt((int)ind);
-                                //break;
-                            }
-                        }
-                    }
-                    //r.drops.Clear();
-                    //Object.Destroy(hit.transform.gameObject);
-                    //BarricadeManager.salvageBarricade(hit.transform);
-                    //System.Console.WriteLine("point 1");
-                    //BarricadeManager.instance.channel.send("tellTakeBarricade", ESteamCall.ALL, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
-                    //BarricadeManager.instance.channel.send("tellTakeBarricade", ESteamCall.ALL, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
-                    
-                    //BarricadeManager.clearPlants();
-                    //BarricadeManager.instance.channel.send("askSalvageBarricade", ESteamCall.SERVER, ESteamPacket.UPDATE_UNRELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
-                    //System.Console.WriteLine("point 2");
+                    List<ItemData> itemsData = new List<ItemData>();
+                    GetItemsInRadius(hit.transform.position, 3, new RegionCoordinate(x, y), itemsData);
+                    foreach (var item in itemsData)
+                        ItemManager.instance.channel.send("tellTakeItem", ESteamCall.CLIENTS, x, y, ItemManager.ITEM_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)item.instanceID);
                     StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
-                    System.Console.WriteLine("point 3");
-                    //r.barricades[index].barricade.state = new byte[0];
-                    //BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
-                    //Object.Destroy(hit.transform.gameObject);
+                }
+            }
+        }
+
+        private static void GetItemsInRadius(Vector3 center, float sqrRadius, RegionCoordinate inRegion, List<ItemData> result)
+        {
+            if (ItemManager.regions[(int)inRegion.x, (int)inRegion.y] != null)
+            {
+                for (int index2 = 0; index2 < ItemManager.regions[inRegion.x, inRegion.y].items.Count; ++index2)
+                {
+                    ItemData itemD = ItemManager.regions[inRegion.x, inRegion.y].items[index2];
+                    if (((double)(itemD.point - center).sqrMagnitude < (double)sqrRadius))
+                        result.Add(itemD);
                 }
             }
         }

@@ -40,6 +40,7 @@ namespace ItemRestrictorAdvanced
                     }
 
                     //System.Console.WriteLine("point 0");
+                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
                     List<RegionCoordinate> regionCoordinates = null;
                     List<InteractableItem> interactableItems = null;
                     ItemManager.getItemsInRadius(hit.transform.position, (float)1, regionCoordinates, interactableItems);
@@ -64,7 +65,7 @@ namespace ItemRestrictorAdvanced
                     //System.Console.WriteLine("point 1");
                     //BarricadeManager.instance.channel.send("tellTakeBarricade", ESteamCall.ALL, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
                     //BarricadeManager.instance.channel.send("tellTakeBarricade", ESteamCall.ALL, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
-                    //BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
+                    
                     //BarricadeManager.clearPlants();
                     //BarricadeManager.instance.channel.send("askSalvageBarricade", ESteamCall.SERVER, ESteamPacket.UPDATE_UNRELIABLE_BUFFER, (object)x, (object)y, (object)plant, (object)index);
                     //System.Console.WriteLine("point 2");

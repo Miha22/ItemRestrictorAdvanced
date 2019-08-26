@@ -27,9 +27,16 @@ namespace ItemRestrictorAdvanced
                 throw new WrongUsageOfCommandException(caller, this);
             }
             UnturnedPlayer player = (UnturnedPlayer)caller;
-            FileInfo file = new FileInfo(Plugin.Instance.pathTemp + player.CSteamID.ToString() + command[0]);
-            if (!file.Exists)
+            try
             {
+                string path = $@"{Plugin.Instance.pathTemp}\{player.CSteamID.ToString()}\{command[0]}.dat";
+                FileStream fs = new FileStream(path, FileMode.Open);
+                fs.Close();
+                //fs.Dispose();
+            }
+            catch(System.Exception e)
+            {
+                System.Console.WriteLine(e.Message);
                 Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"{command[0]} does not exist in your virtual inventory!", Color.red);
                 return;
             }
@@ -38,16 +45,20 @@ namespace ItemRestrictorAdvanced
 
         private static void GiveBox(UnturnedPlayer player, string steamID, string boxName)
         {
-            Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + "\\" + steamID + "\\" + boxName, 0);
+            Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", 0);
             ushort version = block.readUInt16();
             ushort barricadeID = block.readUInt16();
             ushort barricadeHE = block.readUInt16();
             byte[] numArray = block.readByteArray();
             Item barricade = new Item(barricadeID, 1, 100, numArray);
-            player.GiveItem(barricade);
+            Item item = new Item(15, false);
+            //Barricade barricade = new Barricade(barricadeID, barricadeHE, numArray, new ItemBarricadeAsset())
+            //player.GiveItem(barricade);
+            //player.Inventory.tryAddItemAuto(barricade, false, false, false, false);
+            //player.Player.inventory.forceAddItemAuto(barricade, false, true, false);
+            player.Inventory.forceAddItemAuto(item, false, true, false);
+            System.Console.WriteLine("box was given!");
         }
-
-
     }
 }
 //Effect ID is the id parameter, key is an optional instance identifier for modifying instances of an effect, 

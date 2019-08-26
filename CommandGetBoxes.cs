@@ -16,7 +16,6 @@ namespace ItemRestrictorAdvanced
         public string Syntax => "/listbox or /listbox <player name>";
         public List<string> Aliases => new List<string>() { "lb" };
         public List<string> Permissions => new List<string>() { "rocket.listbox", "rocket.lb" };
-        //string path = Plugin.Instance.pathTemp;
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
@@ -31,7 +30,7 @@ namespace ItemRestrictorAdvanced
                 string boxes = "";
                 foreach (FileInfo file in directory.GetFiles())
                 {
-                    boxes += file.Name + " ";
+                    boxes += file.Name.Split('.')[0] + " ";
                 }
                 Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Boxes: {boxes}");
             }
@@ -48,7 +47,7 @@ namespace ItemRestrictorAdvanced
                     string boxes = "";
                     foreach (FileInfo file in directory.GetFiles())
                     {
-                        boxes += file.Name + " ";
+                        boxes += file.Name.Split('.')[0] + " ";
                     }
                     Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Boxes: {boxes}");
                 }

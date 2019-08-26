@@ -36,14 +36,14 @@ namespace ItemRestrictorAdvanced
                     {
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Error occured: this barricade is not a virtual inventory box or box is not yours.", Color.red);
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
-                        //return;
+                        return;
                     }
                     BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
                     List<ItemData> itemsData = new List<ItemData>();
                     GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)
                         ItemManager.instance.channel.send("tellTakeItem", ESteamCall.CLIENTS, x, y, ItemManager.ITEM_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)item.instanceID);
-                    StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    StateToBlock(bdata.barricade, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
                 }
             }
         }
@@ -61,14 +61,14 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void StateToBlock(Barricade barricade, CSteamID steamID, string boxName)
+        private static void StateToBlock(Barricade barricade, string steamID, string boxName)
         {
             Block block = new Block();
             block.writeUInt16(barricade.id);
             block.writeUInt16(barricade.health);
             Plugin.Instance.WriteSpell(block);
             block.writeByteArray(barricade.state);
-            Functions.WriteBlock(Plugin.Instance.pathTemp + "\\" + steamID.ToString() + "\\" + boxName, block, false);
+            Functions.WriteBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", block, false);
         }
 
         private string SetBoxName(string path)

@@ -41,9 +41,31 @@ namespace ItemRestrictorAdvanced
 
                     //System.Console.WriteLine("point 0");
                     BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
-                    List<RegionCoordinate> regionCoordinates = null;
-                    List<InteractableItem> interactableItems = null;
-                    ItemManager.getItemsInRadius(hit.transform.position, (float)1, regionCoordinates, interactableItems);
+                    //List<RegionCoordinate> regionCoordinates = new List<RegionCoordinate>();
+                    List<InteractableItem> interactableItems = new List<InteractableItem>();
+                    Vector3 center = hit.transform.position;
+                    float sqrRadius = 2;
+                    BarricadeManager.tryGetRegion(hit.transform, out byte _x, out byte _y, out ushort _plant, out BarricadeRegion _region);
+                    RegionCoordinate regionCoordinate = new RegionCoordinate(_x, _y);
+                    if (ItemManager.regions[(int)regionCoordinate.x, (int)regionCoordinate.y] != null)
+                    {
+                        System.Console.WriteLine("point 0");
+                        System.Console.WriteLine($"ItemManager.regions[_x, _y].drops.Count: {ItemManager.regions[_x, _y].drops.Count}");
+                        for (int index2 = 0; index2 < ItemManager.regions[_x, _y].drops.Count; ++index2)
+                        {
+                            System.Console.WriteLine("point 1");
+                            ItemDrop drop = ItemManager.regions[(int)regionCoordinate.x, (int)regionCoordinate.y].drops[index2];
+                            if ((double)(drop.model.position - center).sqrMagnitude < (double)sqrRadius)
+                                interactableItems.Add(drop.interactableItem);
+                        }
+                        System.Console.WriteLine("point 2");
+                    }
+                    else
+                        System.Console.WriteLine("Item manager region is null");
+
+                    //ItemManager.getItemsInRadius(bdata.point, (float)4, regionCoordinates, interactableItems);
+                    //System.Console.WriteLine($"regionCoordinates: {regionCoordinates.Count}");
+                    System.Console.WriteLine($"interactableItems: {interactableItems.Count}");
                     ItemRegion region = ItemManager.regions[(int)x, (int)y];
                     for (ushort ind = 0; (int)ind < region.drops.Count; ++ind)
                     {

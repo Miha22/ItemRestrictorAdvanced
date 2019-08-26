@@ -38,8 +38,9 @@ namespace ItemRestrictorAdvanced
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         //return;
                     }
+                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
                     List<ItemData> itemsData = new List<ItemData>();
-                    GetItemsInRadius(hit.transform.position, 3, new RegionCoordinate(x, y), itemsData);
+                    GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)
                         ItemManager.instance.channel.send("tellTakeItem", ESteamCall.CLIENTS, x, y, ItemManager.ITEM_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)item.instanceID);
                     StateToBlock(bdata.barricade, player.CSteamID, (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);

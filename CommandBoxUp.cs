@@ -38,7 +38,7 @@ namespace ItemRestrictorAdvanced
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         return;
                     }
-                    StateToBlock(bdata, hit.transform, x, y, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    StateToBlock(bdata, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
 
                     BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
                     List<ItemData> itemsData = new List<ItemData>();
@@ -62,12 +62,17 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void StateToBlock(BarricadeData bdata, byte x, byte y, string steamID, string boxName)
+        private static void StateToBlock(BarricadeData bdata, string steamID, string boxName)
         {
             Block block = new Block();
-            block.writeByte(x);
-            block.writeByte(y);
-
+            block.writeUInt16(bdata.barricade.id);
+            block.writeSingleVector3(bdata.point);
+            block.writeByte(bdata.angle_x);
+            block.writeByte(bdata.angle_y);
+            block.writeByte(bdata.angle_z);
+            block.writeUInt64(bdata.owner);
+            block.writeUInt64(bdata.group);
+            block.writeByteArray(bdata.barricade.state);
 
             Functions.WriteBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", block, false);
         }

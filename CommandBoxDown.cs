@@ -46,12 +46,28 @@ namespace ItemRestrictorAdvanced
         private static void GiveBox(UnturnedPlayer player, string steamID, string boxName)
         {
             Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", 0);
-            byte x = block.readByte();//player region
-            byte y = block.readByte();//player region
+            ushort id = block.readByte();
+            //Vector3 point = block.readSingleVector3();
+            block.readSingleVector3();
+            float x = (player.Player.look.aim.forward.x - player.Position.x < 5) ? player.Player.look.aim.forward.x : player.Position.x + 4;
+            float y = (player.Player.look.aim.forward.y - player.Position.y < 5) ? player.Player.look.aim.forward.y : player.Position.y + 4;
+            float z = (player.Player.look.aim.forward.z - player.Position.z < 5) ? player.Player.look.aim.forward.z : player.Position.z + 4;
+            Vector3 point = new Vector3(x, y, z);
+            byte angle_x = block.readByte();
+            byte angle_y = block.readByte();
+            byte angle_z = block.readByte();
+            ulong owner = block.readUInt64();
+            ulong group = block.readUInt64();
+            byte[] state = block.readByteArray();
+            Asset asset1 = Assets.find(EAssetType.ITEM, id);
+            ItemBarricadeAsset asset2 = asset1 as ItemBarricadeAsset;
+            Barricade barricade = new Barricade(id, 100, state, asset2);
+            //byte x = block.readByte();//player region
+            //byte y = block.readByte();//player region
             //idea is to spawn barricade in player region
-            BarricadeRegion region = BarricadeManager.regions[(int)x, (int)y];
-            Transform hit = BarricadeTool.getBarricade(region.parent, 100, owner, group, point, Quaternion.Euler((float)((int)angle_x * 2), (float)((int)angle_y * 2), (float)((int)angle_z * 2)), id, state, asset2);
-            BarricadeManager.dropBarricade(bdata.barricade, hit, bdata.point + add, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
+            //BarricadeRegion region = BarricadeManager.regions[(int)x, (int)y];
+            //Transform hit = BarricadeTool.getBarricade(region.parent, 100, owner, group, point, Quaternion.Euler((float)((int)angle_x * 2), (float)((int)angle_y * 2), (float)((int)angle_z * 2)), id, state, asset2);
+            BarricadeManager.dropBarricade(barricade, null, point, angle_x, angle_y, angle_z, owner, group);
             //BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)id, (object)state, (object)point, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)1);
             //BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)368, (object)new byte[0], (object)point2, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)2);
             //block.writeUInt16(barricadeData.barricade.id);

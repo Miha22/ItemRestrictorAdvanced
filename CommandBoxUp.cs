@@ -43,7 +43,7 @@ namespace ItemRestrictorAdvanced
                     GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)
                         ItemManager.instance.channel.send("tellTakeItem", ESteamCall.CLIENTS, x, y, ItemManager.ITEM_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)item.instanceID);
-                    StateToBlock(bdata.barricade, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    StateToBlock(bdata, player.Position, x, y, (uint)hit.transform.GetInstanceID(), player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
                 }
             }
         }
@@ -61,13 +61,22 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void StateToBlock(Barricade barricade, string steamID, string boxName)
+        private static void StateToBlock(BarricadeData barricadeData, Vector3 point, byte x, byte y, uint instanceID, string steamID, string boxName)
         {
             Block block = new Block();
-            block.writeUInt16(barricade.id);
-            block.writeUInt16(barricade.health);
-            Plugin.Instance.WriteSpell(block);
-            block.writeByteArray(barricade.state);
+            block.writeUInt16(barricadeData.barricade.id);
+            //block.writeUInt16(barricadeData.barricade.health);
+            //Plugin.Instance.WriteSpell(block);
+            block.writeByte(x);
+            block.writeByte(y);
+            block.writeSingleVector3(point);
+            block.writeByte(barricadeData.angle_x);
+            block.writeByte(barricadeData.angle_y);
+            block.writeByte(barricadeData.angle_z);
+            block.writeUInt64(barricadeData.owner);
+            block.writeUInt64(barricadeData.group);
+            block.writeUInt64(instanceID);
+            block.writeByteArray(barricadeData.barricade.state);
             Functions.WriteBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", block, false);
         }
 
@@ -79,7 +88,7 @@ namespace ItemRestrictorAdvanced
             DirectoryInfo[] directories = directory.GetDirectories();
 
             //Directory.CreateDirectory(path + $@"\box_{directories.Length - 1}");
-            return $"box_{directories.Length}.dat";
+            return $"box{directories.Length}.dat";
         }
 
         //private void UploadItems(List<MyItem> items, string playerSteamID)

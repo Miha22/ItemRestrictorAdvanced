@@ -17,7 +17,6 @@ namespace ItemRestrictorAdvanced
         public string Syntax => "/sendbox or /sendbox <name of your box>";
         public List<string> Aliases => new List<string>() { "sb" };
         public List<string> Permissions => new List<string>() { "rocket.sendbox", "rocket.sb" };
-        //string path = Plugin.Instance.pathTemp;
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
@@ -39,8 +38,9 @@ namespace ItemRestrictorAdvanced
                         return;
                     }
                     StateToBlock(bdata, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
-
-                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
+                    //BarricadeManager.dropBarricade(bdata.barricade, hit.transform, player.Position, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
+                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 2, false);
+                    BarricadeManager.dropBarricade(bdata.barricade, hit.transform, player.Position, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
                     List<ItemData> itemsData = new List<ItemData>();
                     GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)

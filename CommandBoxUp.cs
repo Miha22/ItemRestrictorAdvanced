@@ -62,23 +62,11 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void StateToBlock(BarricadeData bdata, Transform hit, byte x, byte y, string steamID, string boxName)
+        private static void StateToBlock(BarricadeData bdata, byte x, byte y, string steamID, string boxName)
         {
             Block block = new Block();
-            block.writeUInt16(barricadeData.barricade.id);
-            barricadeData.
-            //block.writeUInt16(barricadeData.barricade.health);
-            //Plugin.Instance.WriteSpell(block);
             block.writeByte(x);
             block.writeByte(y);
-            //block.writeSingleVector3(point);
-            block.writeByte(barricadeData.angle_x);
-            block.writeByte(barricadeData.angle_y);
-            block.writeByte(barricadeData.angle_z);
-            block.writeUInt64(barricadeData.owner);
-            block.writeUInt64(barricadeData.group);
-            block.writeUInt64(instanceID);
-            block.writeByteArray(barricadeData.barricade.state);
 
 
             Functions.WriteBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", block, false);

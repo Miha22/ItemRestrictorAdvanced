@@ -46,27 +46,12 @@ namespace ItemRestrictorAdvanced
         private static void GiveBox(UnturnedPlayer player, string steamID, string boxName)
         {
             Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", 0);
-            //ushort version = block.readUInt16();
-            ushort id = block.readUInt16();
-            //ushort heal = block.readUInt16();
-            byte x = block.readByte();
-            byte y = block.readByte();
-            Vector3 add = new Vector3(3, 0, 0);
-            Vector3 point = player.Position + add;
-            //Vector3 point2 = point + add;
-            byte angle_x = block.readByte();
-            byte angle_y = block.readByte();
-            byte angle_z = block.readByte();
-            ulong owner = block.readUInt64();
-            ulong group = block.readUInt64();
-            ulong instanceID = block.readUInt64();
-            byte[] state = block.readByteArray();
-            Local local = new Local()
-            Data data = new Data()
-            Bundle bundle = new Bundle()
-            Barricade barricade = new Barricade(id, 100, state, new ItemBarricadeAsset())
-            BarricadeData bdata = new BarricadeData()
-            BarricadeManager.dropBarricade(bdata.barricade, hit.transform, bdata.point + add, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
+            byte x = block.readByte();//player region
+            byte y = block.readByte();//player region
+            //idea is to spawn barricade in player region
+            BarricadeRegion region = BarricadeManager.regions[(int)x, (int)y];
+            Transform hit = BarricadeTool.getBarricade(region.parent, 100, owner, group, point, Quaternion.Euler((float)((int)angle_x * 2), (float)((int)angle_y * 2), (float)((int)angle_z * 2)), id, state, asset2);
+            BarricadeManager.dropBarricade(bdata.barricade, hit, bdata.point + add, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
             //BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)id, (object)state, (object)point, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)1);
             //BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)368, (object)new byte[0], (object)point2, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)2);
             //block.writeUInt16(barricadeData.barricade.id);

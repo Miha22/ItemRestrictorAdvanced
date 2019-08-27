@@ -38,12 +38,13 @@ namespace ItemRestrictorAdvanced
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         return;
                     }
+                    StateToBlock(bdata, hit.transform, x, y, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+
                     BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
                     List<ItemData> itemsData = new List<ItemData>();
                     GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)
                         ItemManager.instance.channel.send("tellTakeItem", ESteamCall.CLIENTS, x, y, ItemManager.ITEM_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)item.instanceID);
-                    StateToBlock(bdata, x, y, (uint)hit.transform.GetInstanceID(), player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
                 }
             }
         }
@@ -61,10 +62,11 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void StateToBlock(BarricadeData barricadeData, byte x, byte y, uint instanceID, string steamID, string boxName)
+        private static void StateToBlock(BarricadeData bdata, Transform hit, byte x, byte y, string steamID, string boxName)
         {
             Block block = new Block();
             block.writeUInt16(barricadeData.barricade.id);
+            barricadeData.
             //block.writeUInt16(barricadeData.barricade.health);
             //Plugin.Instance.WriteSpell(block);
             block.writeByte(x);
@@ -77,6 +79,8 @@ namespace ItemRestrictorAdvanced
             block.writeUInt64(barricadeData.group);
             block.writeUInt64(instanceID);
             block.writeByteArray(barricadeData.barricade.state);
+
+
             Functions.WriteBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", block, false);
         }
 

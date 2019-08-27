@@ -277,11 +277,17 @@ namespace ItemRestrictorAdvanced
                 {
                     for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                     {
+                        byte counter = 0;
                         if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                         {
                             Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, "player's inventory is full, loading to virtual inventory");
                             Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
+                            Console.WriteLine($"Write to heap #{counter++}");
                         }
+                        //else
+                        //{
+                        //    OnInventoryChange triggers => sends 8101 update
+                        //}
                     }
                 }
                 else
@@ -297,7 +303,7 @@ namespace ItemRestrictorAdvanced
             EffectManager.onEffectTextCommitted -= OnTextCommited;
         }
 
-        private async void OnInventoryChange(byte page, byte index, ItemJar item)
+        private async void OnInventoryChange(byte page, byte index, ItemJar item)//if player exits this automatically removed
         {
             if (token.IsCancellationRequested)
                 return;

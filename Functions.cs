@@ -77,7 +77,7 @@ namespace ItemRestrictorAdvanced
             return new Block(0, contents);
         }
 
-        public static void WriteItem(Item item, string pathHeap)
+        public static void WriteItem(Item item, string pathHeap)//to heap
         {
             Block block = new Block();
             block.writeUInt16(item.id);

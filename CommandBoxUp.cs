@@ -31,6 +31,7 @@ namespace ItemRestrictorAdvanced
                 if (BarricadeManager.tryGetInfo(hit.transform, out byte x, out byte y, out ushort plant, out ushort index, out BarricadeRegion r))
                 {
                     BarricadeData bdata = r.barricades[index];
+                    r.
                     if (bdata.barricade.id != 3280 || bdata.owner != player.CSteamID.m_SteamID)
                     {
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Error occured: this barricade is not a virtual inventory box or box is not yours.", Color.red);

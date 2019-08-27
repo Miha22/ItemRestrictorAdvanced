@@ -51,7 +51,9 @@ namespace ItemRestrictorAdvanced
             //ushort heal = block.readUInt16();
             byte x = block.readByte();
             byte y = block.readByte();
-            Vector3 point = block.readSingleVector3();
+            Vector3 add = new Vector3(3, 0, 0);
+            Vector3 point = player.Position + add;
+            //Vector3 point2 = point + add;
             byte angle_x = block.readByte();
             byte angle_y = block.readByte();
             byte angle_z = block.readByte();
@@ -59,9 +61,14 @@ namespace ItemRestrictorAdvanced
             ulong group = block.readUInt64();
             ulong instanceID = block.readUInt64();
             byte[] state = block.readByteArray();
-
-            BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)id, (object)state, (object)point, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)instanceID);
-            
+            Local local = new Local()
+            Data data = new Data()
+            Bundle bundle = new Bundle()
+            Barricade barricade = new Barricade(id, 100, state, new ItemBarricadeAsset())
+            BarricadeData bdata = new BarricadeData()
+            BarricadeManager.dropBarricade(bdata.barricade, hit.transform, bdata.point + add, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
+            //BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)id, (object)state, (object)point, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)1);
+            //BarricadeManager.instance.channel.send("tellBarricade", ESteamCall.OTHERS, x, y, BarricadeManager.BARRICADE_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)ushort.MaxValue, (object)368, (object)new byte[0], (object)point2, (object)angle_x, (object)angle_y, (object)angle_z, (object)owner, (object)group, (object)2);
             //block.writeUInt16(barricadeData.barricade.id);
             //block.writeByte(x);
             //block.writeByte(y);

@@ -43,7 +43,7 @@ namespace ItemRestrictorAdvanced
                     GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)
                         ItemManager.instance.channel.send("tellTakeItem", ESteamCall.CLIENTS, x, y, ItemManager.ITEM_REGIONS, ESteamPacket.UPDATE_RELIABLE_BUFFER, (object)x, (object)y, (object)item.instanceID);
-                    StateToBlock(bdata, player.Position, x, y, (uint)hit.transform.GetInstanceID(), player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    StateToBlock(bdata, x, y, (uint)hit.transform.GetInstanceID(), player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
                 }
             }
         }
@@ -61,7 +61,7 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void StateToBlock(BarricadeData barricadeData, Vector3 point, byte x, byte y, uint instanceID, string steamID, string boxName)
+        private static void StateToBlock(BarricadeData barricadeData, byte x, byte y, uint instanceID, string steamID, string boxName)
         {
             Block block = new Block();
             block.writeUInt16(barricadeData.barricade.id);
@@ -69,7 +69,7 @@ namespace ItemRestrictorAdvanced
             //Plugin.Instance.WriteSpell(block);
             block.writeByte(x);
             block.writeByte(y);
-            block.writeSingleVector3(point);
+            //block.writeSingleVector3(point);
             block.writeByte(barricadeData.angle_x);
             block.writeByte(barricadeData.angle_y);
             block.writeByte(barricadeData.angle_z);

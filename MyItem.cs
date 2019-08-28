@@ -84,10 +84,12 @@ namespace ItemRestrictorAdvanced
             if (myItem.State == null)
                 myItem.State = new byte[0];
 
-            if (IsStateEqual(this.State, myItem.State) && (this.ID == myItem.ID) && (this.Quality == myItem.Quality) && (this.x == myItem.x))
-                return true;
-            else
-                return false;
+            //if (IsStateEqual(this.State, myItem.State) && (this.ID == myItem.ID) && (this.Quality == myItem.Quality) && (this.x == myItem.x))
+            //if (this.ID == myItem.ID)
+            //    return true;
+            //else
+            //    return false;
+            return this.ID == myItem.ID;
         }
         private bool IsStateEqual(byte[] state1, byte[] state2)
         {

@@ -31,17 +31,16 @@ namespace ItemRestrictorAdvanced
                 if (BarricadeManager.tryGetInfo(hit.transform, out byte x, out byte y, out ushort plant, out ushort index, out BarricadeRegion r))
                 {
                     BarricadeData bdata = r.barricades[index];
-                    r.
                     if (bdata.barricade.id != 3280 || bdata.owner != player.CSteamID.m_SteamID)
                     {
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Error occured: this barricade is not a virtual inventory box or box is not yours.", Color.red);
                         Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"Owner steamID: {bdata.owner}\r\nYour steamID: {player.CSteamID.ToString()}");
                         return;
                     }
-                    StateToBlock(bdata, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0]);
+                    StateToBlock(bdata, player.CSteamID.ToString(), (command.Length == 0) ? SetBoxName(Plugin.Instance.pathTemp + $@"\{player.CSteamID}") : command[0].Trim());
                     //BarricadeManager.dropBarricade(bdata.barricade, hit.transform, player.Position, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
-                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 2, false);
-                    BarricadeManager.dropBarricade(bdata.barricade, hit.transform, player.Position, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
+                    BarricadeManager.damage(hit.transform, ushort.MaxValue, 1, false);
+                    //BarricadeManager.dropBarricade(bdata.barricade, hit.transform, player.Position, bdata.angle_x, bdata.angle_y, bdata.angle_z, bdata.owner, bdata.group);
                     List<ItemData> itemsData = new List<ItemData>();
                     GetItemsInRadius(bdata.point, 2, new RegionCoordinate(x, y), itemsData);
                     foreach (var item in itemsData)
@@ -67,6 +66,7 @@ namespace ItemRestrictorAdvanced
         {
             Block block = new Block();
             block.writeUInt16(bdata.barricade.id);
+            block.writeUInt16(bdata.barricade.health);
             block.writeSingleVector3(bdata.point);
             block.writeByte(bdata.angle_x);
             block.writeByte(bdata.angle_y);
@@ -86,7 +86,7 @@ namespace ItemRestrictorAdvanced
             DirectoryInfo[] directories = directory.GetDirectories();
 
             //Directory.CreateDirectory(path + $@"\box_{directories.Length - 1}");
-            return $"box{directories.Length}.dat";
+            return $"box{directories.Length}";
         }
 
         //private void UploadItems(List<MyItem> items, string playerSteamID)

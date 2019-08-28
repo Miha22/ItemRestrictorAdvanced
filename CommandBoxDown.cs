@@ -29,12 +29,13 @@ namespace ItemRestrictorAdvanced
             UnturnedPlayer player = (UnturnedPlayer)caller;
             try
             {
-                string path = $@"{Plugin.Instance.pathTemp}\{player.CSteamID.ToString()}\{command[0]}.dat";
-                FileStream fs = new FileStream(path, FileMode.Open);
-                fs.Close();
-                //fs.Dispose();
+                command[0] = command[0].Trim();
+                string path = $@"{Plugin.Instance.pathTemp}\{player.CSteamID}\{command[0]}.dat";
+                FileStream fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite);
+                //fs.Close();
+                fs.Dispose();
             }
-            catch(System.Exception e)
+            catch (System.Exception e)
             {
                 System.Console.WriteLine(e.Message);
                 Rocket.Unturned.Chat.UnturnedChat.Say(caller, $"{command[0]} does not exist in your virtual inventory!", Color.red);
@@ -47,6 +48,7 @@ namespace ItemRestrictorAdvanced
         {
             Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $@"\{steamID}\{boxName}.dat", 0);
             ushort id = block.readUInt16();
+            ushort he = block.readUInt16();
             //Vector3 point = block.readSingleVector3();
             block.readSingleVector3();
             float x = (player.Player.look.aim.forward.x - player.Position.x < 5) ? player.Player.look.aim.forward.x : player.Position.x + 4;
@@ -61,12 +63,13 @@ namespace ItemRestrictorAdvanced
             byte[] state = block.readByteArray();
             Asset asset1 = Assets.find(EAssetType.ITEM, id);
             ItemBarricadeAsset asset2 = asset1 as ItemBarricadeAsset;
-            Barricade barricade = new Barricade(id, 100, state, asset2);
+            Barricade barricade = new Barricade(id, he, state, asset2);
 
             //Transform hit = BarricadeTool.getBarricade(region.parent, 100, owner, group, point, Quaternion.Euler((float)((int)angle_x * 2), (float)((int)angle_y * 2), (float)((int)angle_z * 2)), id, state, asset2);
 
-            BarricadeManager.dropBarricade(barricade, null, point, angle_x, angle_y, angle_z, owner, group);
+            BarricadeManager.dropBarricade(barricade, null, player.Position, angle_x, angle_y, angle_z, owner, group);
             //block.writeUInt16(bdata.barricade.id);
+            //block.writeUInt16(bdata.barricade.health);
             //block.writeSingleVector3(bdata.point);
             //block.writeByte(bdata.angle_x);
             //block.writeByte(bdata.angle_y);

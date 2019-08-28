@@ -207,7 +207,7 @@ namespace ItemRestrictorAdvanced
                     //else
                         //selectedItem = null;// + button
 
-                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8101;
+                    EffectManager.onEffectButtonClicked -= this.OnEffectButtonClick8101;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
                     EffectManager.onEffectTextCommitted += OnTextCommited;
                     EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
@@ -268,8 +268,10 @@ namespace ItemRestrictorAdvanced
 
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
+            Console.WriteLine($"button clicked: {buttonName}");
             if (buttonName == "SaveExit" && id != "" && count != "")//item was removed by player or button "+" clicked
             {
+                Console.WriteLine("if in 8102");
                 ushort newID = Convert.ToUInt16(id);
                 ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, newID);
                 Item newitem = new Item(item.id, item.amount, 100, item.getState());
@@ -295,8 +297,12 @@ namespace ItemRestrictorAdvanced
                         Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
             }
             else
+            {
+                EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
                 return;
+            }
 
+            Console.WriteLine("IF AND ELSE PASSED");
             EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
             EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
             EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);

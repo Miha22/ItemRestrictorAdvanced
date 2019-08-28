@@ -32,8 +32,17 @@ namespace ItemRestrictorAdvanced
                     if((itemIndex + 1) <= MyItemsPages[currentPage - 1].Count)
                     {
                         MyItem myItem = MyItemsPages[currentPage - 1][itemIndex];
-                        callerPlayer.inventory.tryAddItemAuto(new Item(myItem.ID, myItem.X, myItem.Quality, myItem.State), false, false, false, false);
-                        MyItemsPages[currentPage - 1][itemIndex].Count--;
+                        if (callerPlayer.inventory.tryAddItemAuto(new Item(myItem.ID, myItem.X, myItem.Quality, myItem.State), false, false, false, false))
+                        {
+                            //MyItemsPages[currentPage - 1][itemIndex].Count--;
+                            if (--MyItemsPages[currentPage - 1][itemIndex].Count == 0)
+                                MyItemsPages[currentPage - 1].RemoveAt(itemIndex);
+                            ReturnLoad(MyItemsPages, callerPlayer.channel.owner.playerID.steamID.ToString());
+                        }
+                        else
+                            Rocket.Unturned.Chat.UnturnedChat.Say(Rocket.Unturned.Player.UnturnedPlayer.FromPlayer(callerPlayer), "You inventory is full, remove something");
+                        EffectManager.askEffectClearByID(26, callerPlayer.channel.owner.playerID.steamID);
+                        ShowItemsUI(callerPlayer, currentPage);
                     }                  
                     break;
 
@@ -88,12 +97,19 @@ namespace ItemRestrictorAdvanced
                 return;
             }
         }
+
         private void ReturnLoad(List<List<MyItem>> myItems, string CSteamID)
         {
-            Block block = new Block();
+            Block block = new Block(0);
             ushort itemsCount = 0;
             for (byte i = 0; i < myItems.Count; i++)
                 itemsCount += (ushort)myItems[i].Count;
+            if(itemsCount == 0)
+            {
+                Functions.WriteBlock(Plugin.Instance.pathTemp + $"\\{CSteamID}\\Heap.dat", block, false);
+                return;
+            }
+
             byte multiplier = (byte)System.Math.Floor(itemsCount / 256.0);
             block.writeByte((byte)itemsCount);
             block.writeByte(multiplier);
@@ -107,10 +123,19 @@ namespace ItemRestrictorAdvanced
                     block.writeUInt16((ushort)item.State.Length);
                     foreach (byte bite in item.State)
                         block.writeByte(bite);
+                    //block.writeUInt16(item.id);
+                    //block.writeByte(item.amount);
+                    //block.writeByte(item.quality);
+                    //block.writeUInt16((ushort)item.state.Length);
+                    //foreach (byte bite in item.state)
+                    //    block.writeByte(bite);
                 }
             }
+            System.Console.WriteLine($"items count in return load: {itemsCount}");
+            System.Console.WriteLine($"multiplier in return load: {multiplier}");
             Functions.WriteBlock(Plugin.Instance.pathTemp + $"\\{CSteamID}\\Heap.dat", block, false);
         }
+
         private void QuitUI(Player callerPlayer, ushort effectId)
         {
             EffectManager.askEffectClearByID(effectId, callerPlayer.channel.owner.playerID.steamID);

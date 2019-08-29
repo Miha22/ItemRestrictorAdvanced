@@ -56,22 +56,26 @@ namespace ItemRestrictorAdvanced
 
             Block blockExist = ReadBlock(path, 0);
             ushort blockCount = 0;
+            byte[] contents = new byte[(blockExist.block.Length + blockAdd.block.Length)];
             if (blockExist.block.Length != 0)
                 blockCount = (ushort)(blockExist.readByte() + (256 * blockExist.readByte()));
+            else
+                contents = new byte[2 + (blockExist.block.Length + blockAdd.block.Length)];
 
-            byte[] contents = new byte[(ushort)(2 + blockExist.block.Length + blockAdd.block.Length)];
+
+
             byte multiplier = (byte)System.Math.Floor((blockCount + 1) / 256.0);
 
             contents[0] = (byte)(++blockCount);
             contents[1] = multiplier;
-            for (ushort i = 2; i < blockExist.block.Length; i++)
+            for (int i = 2; i < blockExist.block.Length; i++)
                 contents[i] = blockExist.block[i];
 
             if (blockExist.block.Length != 0)
-                for (ushort i = 0; i < blockAdd.block.Length; i++)
+                for (int i = 0; i < blockAdd.block.Length; i++)
                     contents[i + blockExist.block.Length] = blockAdd.block[i];
             else
-                for (ushort i = 0; i < blockAdd.block.Length; i++)
+                for (int i = 0; i < blockAdd.block.Length; i++)
                     contents[i + 2] = blockAdd.block[i];
 
             return new Block(0, contents);
@@ -95,7 +99,7 @@ namespace ItemRestrictorAdvanced
             List<List<MyItem>> myItemsPages = new List<List<MyItem>>();
             List<MyItem> myItems = new List<MyItem>();
             ushort itemsCount = (ushort)(block.readByte() + (256 * block.readByte()));
-            byte pagesCount = (byte)System.Math.Ceiling(itemsCount / 24.0);
+            System.Console.WriteLine($"itemsCount: {itemsCount}");
             for (ushort i = 0; i < itemsCount; i++)
             {
                 ushort id = block.readUInt16();
@@ -105,18 +109,28 @@ namespace ItemRestrictorAdvanced
                 byte[] state = new byte[len];
                 for (ushort j = 0; j < len; j++)
                     state[j] = block.readByte();
-                myItems.Add(new MyItem(id, amount, quality, state));
+                MyItem myItem = new MyItem(id, amount, quality, state);
+                System.Console.WriteLine($"myItem: {id}");
+                if (Plugin.Instance.HasItem(myItem, myItems))
+                    continue;
+                else
+                    myItems.Add(myItem);
             }
-
+            System.Console.WriteLine($"myItems count: {myItems.Count}");
+            foreach (var item in myItems)
+            {
+                System.Console.WriteLine($"item id: {item.ID}");
+            }
+            byte pagesCount = (byte)System.Math.Ceiling(myItems.Count / 24.0);
+            System.Console.WriteLine($"pagesCount: {pagesCount}");
+            byte counter = 0;
             for (byte i = 0; i < pagesCount; i++)
             {
                 List<MyItem> items = new List<MyItem>();
-                for (ushort j = 0; j < 24 && j < myItems.Count; j++)
-                {
+                for (ushort j = 0; j < 24 && counter++ < myItems.Count; j++)
                     items.Add(myItems[j]);
-                    myItems.RemoveAt(j);
-                }
                 myItemsPages.Add(items);
+                System.Console.WriteLine($"items: {items.Count}");
             }
 
             return (myItemsPages, pagesCount);

@@ -65,8 +65,10 @@ namespace ItemRestrictorAdvanced
                     break;
 
                 case "MainPage":
-                    goto case "ButtonPrev";
-
+                    EffectManager.onEffectButtonClicked -= this.OnEffectButtonClick8101;
+                    ReturnLoad(MyItemsPages, callerPlayer.channel.owner.playerID.steamID.ToString());
+                    QuitUI(callerPlayer, 8101);
+                    break;
                 case "ButtonExit":
                     EffectManager.onEffectButtonClicked -= this.OnEffectButtonClick8101;
                     ReturnLoad(MyItemsPages, callerPlayer.channel.owner.playerID.steamID.ToString());

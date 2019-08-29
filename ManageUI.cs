@@ -275,6 +275,8 @@ namespace ItemRestrictorAdvanced
                 ushort newID = Convert.ToUInt16(id);
                 ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, newID);
                 Item newitem = new Item(item.id, item.amount, 100, item.getState());
+                if (!Directory.Exists(Plugin.Instance.pathTemp + $"\\{playerSteamID}"))
+                    Directory.CreateDirectory(Plugin.Instance.pathTemp + $"\\{playerSteamID}");
                 if (targetPlayer != null)
                 {
                     for (ushort i = 0; i < Convert.ToUInt16(count); i++)
@@ -282,7 +284,7 @@ namespace ItemRestrictorAdvanced
                         byte counter = 0;
                         if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                         {
-                            Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, "player's inventory is full, loading to virtual inventory");
+                            Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"{(targetPlayer != null ? targetPlayer.channel.owner.playerID.characterName + "'s" : "player's")} inventory is full, loading item: {item.name} to his virtual inventory");
                             Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
                             Console.WriteLine($"Write to heap #{counter++}");
                         }

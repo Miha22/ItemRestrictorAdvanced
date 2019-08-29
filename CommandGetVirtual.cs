@@ -17,6 +17,8 @@ namespace ItemRestrictorAdvanced
         public void Execute(IRocketPlayer caller, string[] command)
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
+            if (!System.IO.Directory.Exists(Plugin.Instance.pathTemp + $"\\{player.CSteamID}"))
+                System.IO.Directory.CreateDirectory(Plugin.Instance.pathTemp + $"\\{player.CSteamID}");
             Block block = Functions.ReadBlock(Plugin.Instance.pathTemp + $"\\{player.CSteamID}\\Heap.dat", 0);
             if (block.block.Length == 0)
             {
@@ -30,6 +32,9 @@ namespace ItemRestrictorAdvanced
             for (byte i = (byte)myItemsPages[0].Count; i < 24; i++)
                 EffectManager.sendUIEffectText(26, player.CSteamID, false, $"item{i}", $"");
             EffectManager.sendUIEffectText(26, player.CSteamID, false, "playerName", $"Cloud: {player.CharacterName}");
+            EffectManager.sendUIEffectText(26, player.CSteamID, false, "page", $"{1}");
+            EffectManager.sendUIEffectText(26, player.CSteamID, false, "pagemax", $"{pagesCount}");
+            EffectManager.sendUIEffectText(26, player.CSteamID, false, "playerName", $"Cloud: {player.Player.channel.owner.playerID.characterName}");
             EffectManager.onEffectButtonClicked += new ManageCloudUI(myItemsPages, pagesCount).OnEffectButtonClick8101;
             player.Player.serversideSetPluginModal(true);  
         }

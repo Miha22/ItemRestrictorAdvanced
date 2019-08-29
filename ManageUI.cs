@@ -6,6 +6,8 @@ using System.Globalization;
 using Logger = Rocket.Core.Logging.Logger;
 using System.Threading;
 using System.IO;
+using Rocket.Unturned.Chat;
+using System.Linq;
 
 namespace ItemRestrictorAdvanced
 {
@@ -24,6 +26,7 @@ namespace ItemRestrictorAdvanced
         private string playerSteamID;
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
+        private ushort selectedId;
         private string id;
         private string count;
 
@@ -195,7 +198,7 @@ namespace ItemRestrictorAdvanced
                     //show 8102
                     //EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
                     //if (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))
-                    //    selectedItem = UIitemsPages[currentPage - 1][itemIndex];
+                    selectedId = UIitemsPages[currentPage - 1][itemIndex].ID;
                     //else
                     //    return;    
                     //selectedItem = (UIitemsPages[currentPage - 1].Count >= (itemIndex + 1))?(selectedItem = UIitemsPages[currentPage - 1][itemIndex]):(selectedItem = null);
@@ -258,12 +261,16 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private void OnTextCommited(Player player, string button, string text)
+        private static void RemoveItem(PlayerInventory inventory, ushort id)
         {
-            if (button == "ID")
-                id = text;
-            else
-                count = text;
+            foreach (Items page in inventory.items)
+            {
+                foreach (var item in page.items)
+                {
+                    if (item.item.id == id)
+                        page.removeItem(page.getIndex(item.x, item.y));
+                }
+            }
         }
 
         private static void RemoveItem(PlayerInventory inventory, ushort id, ushort times)
@@ -287,10 +294,31 @@ namespace ItemRestrictorAdvanced
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
             //Console.WriteLine($"button clicked: {buttonName}");
-            if (buttonName == "SaveExit" && id != "" && count != "")//item was removed by player or button "+" clicked
+            if (buttonName == "SaveExit" && id != "" && count != "")
             {
                 //Console.WriteLine("if in 8102");
-                ushort newID = Convert.ToUInt16(id);
+                if (!ushort.TryParse(id, out ushort newID))
+                {
+                    Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"ID: {newID} is not a number", UnityEngine.Color.red);
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+                    EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.onEffectTextCommitted -= OnTextCommited;
+
+                    return;
+                }
+
+                if (Assets.find(EAssetType.ITEM, newID) == null)
+                {
+                    UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"ID: {newID} cannot be found, check if your id exists", UnityEngine.Color.red);
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+                    EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+                    EffectManager.onEffectTextCommitted -= OnTextCommited;
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+
+                    return;
+                }
+                    
                 ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, newID);
                 Item newitem = new Item(item.id, item.amount, 100, item.getState());
                 if (!Directory.Exists(Plugin.Instance.pathTemp + $"\\{playerSteamID}"))
@@ -299,10 +327,9 @@ namespace ItemRestrictorAdvanced
                 {
                     for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                     {
-                        targetPlayer.inventory.rem
                         if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                         {
-                            Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"{(targetPlayer != null ? targetPlayer.channel.owner.playerID.characterName + "'s" : "player's")} inventory is full, loading item: {item.name} to his virtual inventory");
+                            UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"{(targetPlayer != null ? targetPlayer.channel.owner.playerID.characterName + "'s" : "player's")} inventory is full, loading item: {item.name} to his virtual inventory");
                             Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
                         }
                         //else
@@ -313,23 +340,110 @@ namespace ItemRestrictorAdvanced
                 }
                 else
                 {
-                    Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Player has just exited, loading to virtual inventory");
+                    UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Player has just left the server, loading to player's virtual inventory..");
                     for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                         Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
                 }
-                    
-            }
-            else
-            {
-                EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
+                EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+                EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+                EffectManager.onEffectTextCommitted -= OnTextCommited;
+                EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+
                 return;
+            }
+            switch (buttonName)
+            {
+                case "ButtonRemove":
+                    if (targetPlayer != null)
+                    {
+                        RemoveItem(targetPlayer.inventory, selectedId);
+                        UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"All ID: {selectedId} items were removed from {targetPlayer.channel.owner.playerID.characterName}");
+                    }
+                    else
+                        UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Cannot remove items from player, because player left the server");
+                    break;
+                case "ButtonAdd":
+                    ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, selectedId);
+                    Item newitem = new Item(item.id, item.amount, 100, item.getState());
+                    if (targetPlayer != null)
+                    {
+                        if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
+                        {
+                            UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"{(targetPlayer != null ? targetPlayer.channel.owner.playerID.characterName + "'s" : "player's")} inventory is full, loading item: {item.name} to his virtual inventory");
+                            Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
+                        }
+                    }
+                    else
+                    {
+                        UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Player has just left the server, loading to player's virtual inventory..");
+                        for (ushort i = 0; i < Convert.ToUInt16(count); i++)
+                            Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
+                    }
+                    break;
+                case "ButtonDel":
+                    if (targetPlayer != null)
+                    {
+                        RemoveItem(targetPlayer.inventory, selectedId, 1);
+                        UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"ID: {selectedId} item was removed from {targetPlayer.channel.owner.playerID.characterName}");
+                    }
+                    else
+                        UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Cannot remove item from player, because player left the server");
+                    break;
+                case "MainPage":
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+                    EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+                    EffectManager.onEffectTextCommitted -= OnTextCommited;
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    break;
+                case "ButtonHelp":
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+                    EffectManager.onEffectButtonClicked += OnEffectButtonClick8103;
+                    EffectManager.sendUIEffect(8103, 8127, callerPlayer.channel.owner.playerID.steamID, false);
+                    break;
+                default:
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
+                    break;
             }
 
             //Console.WriteLine("IF AND ELSE PASSED");
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
-            EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
-            EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
-            EffectManager.onEffectTextCommitted -= OnTextCommited;
+            //EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+            //EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+            //EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+            //EffectManager.onEffectTextCommitted -= OnTextCommited;
+        }
+
+        private void OnTextCommited(Player player, string field, string text)
+        {
+            if (field == "ID")
+                id = text;
+            else
+                count = text;
+        }
+
+        private void OnTextCommited8103(Player player, string field, string text)
+        {
+            if (field == "Input")
+                SearcherIdFinder(player.channel.owner.playerID.steamID, text);
+        }
+
+        private void SearcherIdFinder(Steamworks.CSteamID steamID, string itemString)
+        {
+            ItemAsset itemAsset = new List<ItemAsset>(Assets.find(EAssetType.ITEM).Cast<ItemAsset>()).Where<ItemAsset>((Func<ItemAsset, bool>)(i => i.itemName != null)).OrderBy<ItemAsset, int>((Func<ItemAsset, int>)(i => i.itemName.Length)).Where<ItemAsset>((Func<ItemAsset, bool>)(i => i.itemName.ToLower().Contains(itemString.ToLower()))).FirstOrDefault<ItemAsset>();
+            if (itemAsset == null)
+                EffectManager.sendUIEffectText(8127, steamID, false, "Text", "Failed to find ID, try again");
+            else
+                EffectManager.sendUIEffectText(8127, steamID, false, "Text", $"{itemAsset.id}");
+        }
+
+        private void OnEffectButtonClick8103(Player callerPlayer, string button)
+        {
+            if(button == "ButtonOk")
+            {
+                EffectManager.onEffectButtonClicked -= OnEffectButtonClick8103;
+                EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
+                EffectManager.askEffectClearByID(8103, callerPlayer.channel.owner.playerID.steamID);
+            }
         }
 
         private async void OnInventoryChange(byte page, byte index, ItemJar item)//if player exits this automatically removed
@@ -355,7 +469,7 @@ namespace ItemRestrictorAdvanced
             }
             catch (Exception)
             {
-                Console.WriteLine("exception in show ui");
+                //Console.WriteLine("exception in show ui");
                 QuitUI(callPlayer, 8101);
                 return;
             }
@@ -408,9 +522,9 @@ namespace ItemRestrictorAdvanced
                 UIitemsPages.Add(myPage);
             }
             PagesCountInv = (byte)UIitemsPages.Count;
-            Console.WriteLine("in get target items");
-            Console.WriteLine($"UIitemsPages.Count: {UIitemsPages.Count}");
-            Console.WriteLine($"PagesCountInv: {PagesCountInv}");
+            //Console.WriteLine("in get target items");
+            //Console.WriteLine($"UIitemsPages.Count: {UIitemsPages.Count}");
+            //Console.WriteLine($"PagesCountInv: {PagesCountInv}");
         }
 
         private void QuitUI(Player callerPlayer, ushort effectId)
@@ -418,7 +532,7 @@ namespace ItemRestrictorAdvanced
             EffectManager.askEffectClearByID(effectId, callerPlayer.channel.owner.playerID.steamID);
             callerPlayer.serversideSetPluginModal(false);
             ManageUI.UICallers.Remove(callerPlayer);
-            Console.WriteLine($"caller: {callerPlayer.channel.owner.playerID.characterName} removed from list!");
+            //Console.WriteLine($"caller: {callerPlayer.channel.owner.playerID.characterName} removed from list!");
             UIitemsPages.Clear();
         }
 
@@ -429,9 +543,9 @@ namespace ItemRestrictorAdvanced
             TextInfo text = CultureInfo.CurrentCulture.TextInfo;
             EffectManager.sendEffectTextCommitted("ID", id);
             EffectManager.sendEffectTextCommitted("x", x);
-            Console.WriteLine();
-            Console.WriteLine($"ID: {id}, x: {x}");
-            Console.WriteLine();
+            //Console.WriteLine();
+            //Console.WriteLine($"ID: {id}, x: {x}");
+            //Console.WriteLine();
         }
     }
 }

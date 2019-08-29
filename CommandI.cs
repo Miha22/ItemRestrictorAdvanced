@@ -46,7 +46,9 @@ namespace ItemRestrictorAdvanced
             string itemString = command[0].ToString();
             if (!ushort.TryParse(itemString, out result1))
             {
+                //find by name
                 ItemAsset itemAsset = new List<ItemAsset>(Assets.find(EAssetType.ITEM).Cast<ItemAsset>()).Where<ItemAsset>((Func<ItemAsset, bool>)(i => i.itemName != null)).OrderBy<ItemAsset, int>((Func<ItemAsset, int>)(i => i.itemName.Length)).Where<ItemAsset>((Func<ItemAsset, bool>)(i => i.itemName.ToLower().Contains(itemString.ToLower()))).FirstOrDefault<ItemAsset>();
+                Console.WriteLine($"itemAsset in CommandI: {itemAsset.itemName}");
                 if (itemAsset != null)
                     result1 = itemAsset.id;
                 if (string.IsNullOrEmpty(itemString.Trim()) || result1 == (ushort)0)

@@ -27,13 +27,13 @@ namespace ItemRestrictorAdvanced
             try
             {
                 UnturnedPlayer lastCaller = (UnturnedPlayer)caller;
-                EffectManager.sendUIEffect(8100, 22, lastCaller.CSteamID, false);
+                EffectManager.sendUIEffect(8100, 22, lastCaller.CSteamID, true);
                 for (byte i = 0; i < Provider.clients.Count; i++)
-                    EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
-                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, $"page", "1");
+                    EffectManager.sendUIEffectText(22, lastCaller.CSteamID, true, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
+                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, true, $"page", "1");
                 lastCaller.Player.serversideSetPluginModal(true);
                 EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling(Provider.clients.Count / 24.0), lastCaller.Player).OnEffectButtonClick;// feature
-                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, false, "pagemax", $"{ManageUI.PagesCount}");
+                EffectManager.sendUIEffectText(22, lastCaller.CSteamID, true, "pagemax", $"{ManageUI.PagesCount}");
                 ManageUI.UICallers.Add(lastCaller.Player);
 
                 U.Events.OnPlayerConnected += new Refresh(lastCaller.CSteamID).OnPlayersChange;
@@ -48,7 +48,7 @@ namespace ItemRestrictorAdvanced
                 }
             }
 
-            System.Console.WriteLine($"/gi executed");
+            //System.Console.WriteLine($"/gi executed");
         }
     }
 }

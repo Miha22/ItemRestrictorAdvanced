@@ -63,6 +63,7 @@ namespace ItemRestrictorAdvanced
                 EffectManager.askEffectClearByID(8100, caller.channel.owner.playerID.steamID);
                 EffectManager.askEffectClearByID(8101, caller.channel.owner.playerID.steamID);
                 EffectManager.askEffectClearByID(8102, caller.channel.owner.playerID.steamID);
+                EffectManager.askEffectClearByID(8103, caller.channel.owner.playerID.steamID);
                 caller.serversideSetPluginModal(false);
             }
         }
@@ -140,14 +141,14 @@ namespace ItemRestrictorAdvanced
                 case "ButtonNext":
                     if (currentPage == PagesCount)
                     {
-                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{PagesCount}");
+                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, true, "page", $"{PagesCount}");
                         SetCurrentPage(PagesCount, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
                         SetPlayersList(PagesCount, callerPlayer.channel.owner.playerID.steamID);
                         currentPage = 1;
                     }
                     else
                     {
-                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
+                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, true, "page", $"{currentPage}");
                         SetCurrentPage(currentPage, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
                         SetPlayersList(currentPage, callerPlayer.channel.owner.playerID.steamID);
                         currentPage++;
@@ -157,7 +158,7 @@ namespace ItemRestrictorAdvanced
                 case "ButtonPrev":
                     if (currentPage == 1)
                     {
-                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"1");
+                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, true, "page", $"1");
                         SetCurrentPage(1, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
                         SetPlayersList(1, callerPlayer.channel.owner.playerID.steamID);
                         currentPage = PagesCount;
@@ -165,7 +166,7 @@ namespace ItemRestrictorAdvanced
                     }
                     else
                     {
-                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, false, "page", $"{currentPage}");
+                        EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, true, "page", $"{currentPage}");
                         SetCurrentPage(currentPage, callerPlayer.channel.owner.playerID.steamID.m_SteamID);
                         SetPlayersList(currentPage, callerPlayer.channel.owner.playerID.steamID);
                         currentPage--;
@@ -213,7 +214,7 @@ namespace ItemRestrictorAdvanced
                     EffectManager.onEffectButtonClicked -= this.OnEffectButtonClick8101;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8102;
                     EffectManager.onEffectTextCommitted += OnTextCommited;
-                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
+                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, true);
                     break;
 
                 case "ButtonNext":
@@ -261,33 +262,71 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private static void RemoveItem(PlayerInventory inventory, ushort id)
+        private void RemoveItem(Player player, PlayerInventory inventory, ushort id)
         {
+            if (targetPlayer != null)
+            {
+                targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
+                targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
+            }
+            List<ItemsPair> PageIndexPair = new List<ItemsPair>();
+            Console.WriteLine($"iteratuin started");
             foreach (Items page in inventory.items)
             {
-                foreach (var item in page.items)
+                if (page == null)
+                    break;
+                foreach (ItemJar item in page.items)
                 {
                     if (item.item.id == id)
-                        page.removeItem(page.getIndex(item.x, item.y));
+                        PageIndexPair.Add(new ItemsPair() { page = page, index = page.getIndex(item.x, item.y)});
                 }
+            }
+            Console.WriteLine("removeItem is gonna be");
+            foreach (var pair in PageIndexPair)
+                pair.page.removeItem(pair.index);
+            if (targetPlayer != null)
+            {
+                targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
+                targetPlayer.inventory.onInventoryRemoved += OnInventoryChange;
+                GetTargetItems();
+                EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
+                ShowItemsUI(player, currentPage);
             }
         }
 
-        private static void RemoveItem(PlayerInventory inventory, ushort id, ushort times)
+        private void RemoveItem(Player player, PlayerInventory inventory, ushort id, ushort times)//as much as possible will delete
         {
+            if (targetPlayer != null)
+            {
+                targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
+                targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
+            }
             ushort itemsRemoved = 0;
+            List<ItemsPair> PageIndexPair = new List<ItemsPair>();
             foreach (Items page in inventory.items)
             {
-                foreach (var item in page.items)
+                if (itemsRemoved == times || page == null)
+                    break;
+                foreach (ItemJar item in page.items)
                 {
                     if (itemsRemoved == times)
-                        return;
+                        break;
                     if(item.item.id == id)
                     {
-                        page.removeItem(page.getIndex(item.x, item.y));
+                        PageIndexPair.Add(new ItemsPair() { page = page, index = page.getIndex(item.x, item.y) });
                         itemsRemoved++;
                     }
                 }
+            }
+            foreach (var pair in PageIndexPair)
+                pair.page.removeItem(pair.index);
+            if (targetPlayer != null)
+            {
+                targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
+                targetPlayer.inventory.onInventoryRemoved += OnInventoryChange;
+                GetTargetItems();
+                EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
+                ShowItemsUI(player, currentPage);
             }
         }
 
@@ -297,9 +336,9 @@ namespace ItemRestrictorAdvanced
             if (buttonName == "SaveExit" && id != "" && count != "")
             {
                 //Console.WriteLine("if in 8102");
-                if (!ushort.TryParse(id, out ushort newID))
+                if (!ushort.TryParse(id, out ushort newID) || !short.TryParse(count, out short newCount))
                 {
-                    Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"ID: {newID} is not a number", UnityEngine.Color.red);
+                    Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Provided ID or amount is not a number", UnityEngine.Color.red);
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
                     EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
@@ -323,9 +362,9 @@ namespace ItemRestrictorAdvanced
                 Item newitem = new Item(item.id, item.amount, 100, item.getState());
                 if (!Directory.Exists(Plugin.Instance.pathTemp + $"\\{playerSteamID}"))
                     Directory.CreateDirectory(Plugin.Instance.pathTemp + $"\\{playerSteamID}");
-                if (targetPlayer != null)
+                if (targetPlayer != null && newCount >= 0)
                 {
-                    for (ushort i = 0; i < Convert.ToUInt16(count); i++)
+                    for (short i = 0; i < newCount; i++)
                     {
                         if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                         {
@@ -338,6 +377,8 @@ namespace ItemRestrictorAdvanced
                         //}
                     }
                 }
+                else if (targetPlayer != null && newCount < 0)
+                    RemoveItem(callerPlayer, targetPlayer.inventory, newID, (ushort)newCount);
                 else
                 {
                     UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Player has just left the server, loading to player's virtual inventory..");
@@ -356,11 +397,13 @@ namespace ItemRestrictorAdvanced
                 case "ButtonRemove":
                     if (targetPlayer != null)
                     {
-                        RemoveItem(targetPlayer.inventory, selectedId);
+                        RemoveItem(callerPlayer, targetPlayer.inventory, selectedId);
                         UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"All ID: {selectedId} items were removed from {targetPlayer.channel.owner.playerID.characterName}");
                     }
                     else
                         UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Cannot remove items from player, because player left the server");
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, true);
                     break;
                 case "ButtonAdd":
                     ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, selectedId);
@@ -379,15 +422,19 @@ namespace ItemRestrictorAdvanced
                         for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                             Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
                     }
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, true);
                     break;
                 case "ButtonDel":
                     if (targetPlayer != null)
                     {
-                        RemoveItem(targetPlayer.inventory, selectedId, 1);
+                        RemoveItem(callerPlayer, targetPlayer.inventory, selectedId, 1);
                         UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"ID: {selectedId} item was removed from {targetPlayer.channel.owner.playerID.characterName}");
                     }
                     else
                         UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Cannot remove item from player, because player left the server");
+                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, true);
                     break;
                 case "MainPage":
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
@@ -398,14 +445,20 @@ namespace ItemRestrictorAdvanced
                 case "ButtonHelp":
                     EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
                     EffectManager.onEffectButtonClicked += OnEffectButtonClick8103;
-                    EffectManager.sendUIEffect(8103, 8127, callerPlayer.channel.owner.playerID.steamID, false);
+                    EffectManager.onEffectTextCommitted += OnTextCommited8103;
+                    EffectManager.sendUIEffect(8103, 27, callerPlayer.channel.owner.playerID.steamID, true);
                     break;
-                default:
+                case "ButtonOk":
+                    EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
+                    EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
+                    EffectManager.onEffectTextCommitted -= OnTextCommited;
                     EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
-                    EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
+                    break;
+                default://non button click
+                    //EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    //EffectManager.sendUIEffect(8102, 24, callerPlayer.channel.owner.playerID.steamID, false);
                     break;
             }
-
             //Console.WriteLine("IF AND ELSE PASSED");
             //EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
             //EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
@@ -423,17 +476,25 @@ namespace ItemRestrictorAdvanced
 
         private void OnTextCommited8103(Player player, string field, string text)
         {
+            //Console.WriteLine($"field: {field}");
             if (field == "Input")
                 SearcherIdFinder(player.channel.owner.playerID.steamID, text);
         }
 
         private void SearcherIdFinder(Steamworks.CSteamID steamID, string itemString)
         {
+            //EffectManager.askEffectClearByID(8103, callerPlayer.channel.owner.playerID.steamID);
             ItemAsset itemAsset = new List<ItemAsset>(Assets.find(EAssetType.ITEM).Cast<ItemAsset>()).Where<ItemAsset>((Func<ItemAsset, bool>)(i => i.itemName != null)).OrderBy<ItemAsset, int>((Func<ItemAsset, int>)(i => i.itemName.Length)).Where<ItemAsset>((Func<ItemAsset, bool>)(i => i.itemName.ToLower().Contains(itemString.ToLower()))).FirstOrDefault<ItemAsset>();
             if (itemAsset == null)
-                EffectManager.sendUIEffectText(8127, steamID, false, "Text", "Failed to find ID, try again");
+            {
+                EffectManager.sendUIEffect(8103, 27, callerPlayer.channel.owner.playerID.steamID, true);
+                EffectManager.sendUIEffectText(27, steamID, true, "Output", "Failed to find ID, try again");
+            }
             else
-                EffectManager.sendUIEffectText(8127, steamID, false, "Text", $"{itemAsset.id}");
+            {
+                EffectManager.sendUIEffect(8103, 27, callerPlayer.channel.owner.playerID.steamID, true);
+                EffectManager.sendUIEffectText(27, steamID, true, "Output", $"{itemAsset.id}");
+            }
         }
 
         private void OnEffectButtonClick8103(Player callerPlayer, string button)
@@ -460,16 +521,17 @@ namespace ItemRestrictorAdvanced
         {
             try
             {
-                EffectManager.sendUIEffect(8101, 23, callPlayer.channel.owner.playerID.steamID, false);
+                EffectManager.sendUIEffect(8101, 23, callPlayer.channel.owner.playerID.steamID, true);
                 if(UIitemsPages[page - 1].Count != 0)
                     for (byte i = 0; i < UIitemsPages[page - 1].Count; i++)
-                        EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName}\r\nID: {UIitemsPages[page - 1][i].ID}\r\nCount: {UIitemsPages[page - 1][i].Count}");
-                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
-                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{PagesCountInv}");
+                        EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName}\r\nID: {UIitemsPages[page - 1][i].ID}\r\nCount: {UIitemsPages[page - 1][i].Count}");
+                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "page", $"{page}");
+                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "pagemax", $"{PagesCountInv}");
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //Console.WriteLine("exception in show ui");
+                Console.WriteLine("exception in show ui");
+                Console.WriteLine(e);
                 QuitUI(callPlayer, 8101);
                 return;
             }

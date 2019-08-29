@@ -82,15 +82,15 @@ namespace ItemRestrictorAdvanced
         {
             try
             {
-                EffectManager.sendUIEffect(8101, 26, callPlayer.channel.owner.playerID.steamID, false);
+                EffectManager.sendUIEffect(8101, 26, callPlayer.channel.owner.playerID.steamID, true);
                 if (MyItemsPages[page - 1].Count != 0)
                     for (byte i = 0; i < MyItemsPages[page - 1].Count; i++)
-                        EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, MyItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {MyItemsPages[pagesCount - 1][i].ID}\r\nCount: {MyItemsPages[pagesCount - 1][i].Count}");
+                        EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, true, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, MyItemsPages[pagesCount - 1][i].ID)).itemName}\r\nID: {MyItemsPages[pagesCount - 1][i].ID}\r\nCount: {MyItemsPages[pagesCount - 1][i].Count}");
                 for (byte i = (byte)MyItemsPages[0].Count; i < 24; i++)
-                    EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, $"item{i}", $"");
-                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "page", $"{page}");
-                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "pagemax", $"{pagesCount}");
-                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "playerName", $"Cloud: {callPlayer.channel.owner.playerID.characterName}");
+                    EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, true, $"item{i}", $"");
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, true, "page", $"{page}");
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, true, "pagemax", $"{pagesCount}");
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, true, "playerName", $"Cloud: {callPlayer.channel.owner.playerID.characterName}");
             }
             catch (System.Exception e)
             {

@@ -64,6 +64,7 @@
     <Compile Include="Refresh.cs" />
     <Compile Include="SteamChannel.cs" />
     <Compile Include="SteamPlayerCompaper.cs" />
+    <Compile Include="SItemsPair.cs" />
     <Compile Include="Vehicle.cs" />
     <Compile Include="Watcher.cs" />
     <Compile Include="CommandBoxDown.cs" />

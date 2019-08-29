@@ -125,7 +125,6 @@ namespace ItemRestrictorAdvanced
             {
                 foreach (MyItem item in page)
                 {
-                    System.Console.WriteLine($"item.Count in return load: {item.Count}");
                     //itemsCount += item.Count;
                     for (byte i = 0; i < item.Count; i++)
                     {

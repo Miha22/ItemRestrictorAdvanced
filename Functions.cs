@@ -99,7 +99,7 @@ namespace ItemRestrictorAdvanced
             List<List<MyItem>> myItemsPages = new List<List<MyItem>>();
             List<MyItem> myItems = new List<MyItem>();
             ushort itemsCount = (ushort)(block.readByte() + (256 * block.readByte()));
-            System.Console.WriteLine($"itemsCount: {itemsCount}");
+            //System.Console.WriteLine($"itemsCount: {itemsCount}");
             for (ushort i = 0; i < itemsCount; i++)
             {
                 ushort id = block.readUInt16();
@@ -110,19 +110,15 @@ namespace ItemRestrictorAdvanced
                 for (ushort j = 0; j < len; j++)
                     state[j] = block.readByte();
                 MyItem myItem = new MyItem(id, amount, quality, state);
-                System.Console.WriteLine($"myItem: {id}");
+                //System.Console.WriteLine($"myItem: {id}");
                 if (Plugin.Instance.HasItem(myItem, myItems))
                     continue;
                 else
                     myItems.Add(myItem);
             }
-            System.Console.WriteLine($"myItems count: {myItems.Count}");
-            foreach (var item in myItems)
-            {
-                System.Console.WriteLine($"item id: {item.ID}");
-            }
+            //System.Console.WriteLine($"myItems count: {myItems.Count}");
             byte pagesCount = (byte)System.Math.Ceiling(myItems.Count / 24.0);
-            System.Console.WriteLine($"pagesCount: {pagesCount}");
+            //System.Console.WriteLine($"pagesCount: {pagesCount}");
             byte counter = 0;
             for (byte i = 0; i < pagesCount; i++)
             {
@@ -130,7 +126,7 @@ namespace ItemRestrictorAdvanced
                 for (ushort j = 0; j < 24 && counter++ < myItems.Count; j++)
                     items.Add(myItems[j]);
                 myItemsPages.Add(items);
-                System.Console.WriteLine($"items: {items.Count}");
+                //System.Console.WriteLine($"items: {items.Count}");
             }
 
             return (myItemsPages, pagesCount);

@@ -266,12 +266,30 @@ namespace ItemRestrictorAdvanced
                 count = text;
         }
 
+        private static void RemoveItem(PlayerInventory inventory, ushort id, ushort times)
+        {
+            ushort itemsRemoved = 0;
+            foreach (Items page in inventory.items)
+            {
+                foreach (var item in page.items)
+                {
+                    if (itemsRemoved == times)
+                        return;
+                    if(item.item.id == id)
+                    {
+                        page.removeItem(page.getIndex(item.x, item.y));
+                        itemsRemoved++;
+                    }
+                }
+            }
+        }
+
         public void OnEffectButtonClick8102(Player callerPlayer, string buttonName)
         {
-            Console.WriteLine($"button clicked: {buttonName}");
+            //Console.WriteLine($"button clicked: {buttonName}");
             if (buttonName == "SaveExit" && id != "" && count != "")//item was removed by player or button "+" clicked
             {
-                Console.WriteLine("if in 8102");
+                //Console.WriteLine("if in 8102");
                 ushort newID = Convert.ToUInt16(id);
                 ItemAsset item = (ItemAsset)Assets.find(EAssetType.ITEM, newID);
                 Item newitem = new Item(item.id, item.amount, 100, item.getState());
@@ -281,12 +299,11 @@ namespace ItemRestrictorAdvanced
                 {
                     for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                     {
-                        byte counter = 0;
+                        targetPlayer.inventory.rem
                         if (!targetPlayer.inventory.tryAddItemAuto(newitem, false, false, false, false))
                         {
                             Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"{(targetPlayer != null ? targetPlayer.channel.owner.playerID.characterName + "'s" : "player's")} inventory is full, loading item: {item.name} to his virtual inventory");
                             Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");
-                            Console.WriteLine($"Write to heap #{counter++}");
                         }
                         //else
                         //{
@@ -295,8 +312,12 @@ namespace ItemRestrictorAdvanced
                     }
                 }
                 else
+                {
+                    Rocket.Unturned.Chat.UnturnedChat.Say(callerPlayer.channel.owner.playerID.steamID, $"Player has just exited, loading to virtual inventory");
                     for (ushort i = 0; i < Convert.ToUInt16(count); i++)
                         Functions.WriteItem(newitem, Plugin.Instance.pathTemp + $"\\{playerSteamID}\\Heap.dat");// if player is offline load to virtual heap
+                }
+                    
             }
             else
             {
@@ -304,7 +325,7 @@ namespace ItemRestrictorAdvanced
                 return;
             }
 
-            Console.WriteLine("IF AND ELSE PASSED");
+            //Console.WriteLine("IF AND ELSE PASSED");
             EffectManager.onEffectButtonClicked -= OnEffectButtonClick8102;
             EffectManager.onEffectButtonClicked += OnEffectButtonClick8101;
             EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);

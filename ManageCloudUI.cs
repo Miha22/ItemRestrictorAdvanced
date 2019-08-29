@@ -37,7 +37,7 @@ namespace ItemRestrictorAdvanced
                             //MyItemsPages[currentPage - 1][itemIndex].Count--;
                             if (--MyItemsPages[currentPage - 1][itemIndex].Count == 0)
                                 MyItemsPages[currentPage - 1].RemoveAt(itemIndex);
-                            ReturnLoad(MyItemsPages, callerPlayer.channel.owner.playerID.steamID.ToString());
+                            //ReturnLoad(MyItemsPages, callerPlayer.channel.owner.playerID.steamID.ToString());
                         }
                         else
                             Rocket.Unturned.Chat.UnturnedChat.Say(Rocket.Unturned.Player.UnturnedPlayer.FromPlayer(callerPlayer), "You inventory is full, remove something");
@@ -104,27 +104,39 @@ namespace ItemRestrictorAdvanced
         {
             Block block = new Block(0);
             ushort itemsCount = 0;
-            for (byte i = 0; i < myItems.Count; i++)
-                itemsCount += (ushort)myItems[i].Count;
-            if(itemsCount == 0)
+            foreach (List<MyItem> page in myItems)
+            {
+                foreach (MyItem item in page)
+                    itemsCount += item.Count;
+            }
+            byte multiplier = (byte)System.Math.Floor(itemsCount / 256.0);
+            block.writeByte((byte)itemsCount);
+            block.writeByte(multiplier);
+            if (!System.IO.Directory.Exists(Plugin.Instance.pathTemp + $"\\{CSteamID}"))
+                System.IO.Directory.CreateDirectory(Plugin.Instance.pathTemp + $"\\{CSteamID}");
+            if (itemsCount == 0)
             {
                 Functions.WriteBlock(Plugin.Instance.pathTemp + $"\\{CSteamID}\\Heap.dat", block, false);
                 return;
             }
 
-            byte multiplier = (byte)System.Math.Floor(itemsCount / 256.0);
-            block.writeByte((byte)itemsCount);
-            block.writeByte(multiplier);
+
             foreach (List<MyItem> page in myItems)
             {
                 foreach (MyItem item in page)
                 {
-                    block.writeUInt16(item.ID);
-                    block.writeByte(item.X);
-                    block.writeByte(item.Quality);
-                    block.writeUInt16((ushort)item.State.Length);
-                    foreach (byte bite in item.State)
-                        block.writeByte(bite);
+                    System.Console.WriteLine($"item.Count in return load: {item.Count}");
+                    //itemsCount += item.Count;
+                    for (byte i = 0; i < item.Count; i++)
+                    {
+                        block.writeUInt16(item.ID);
+                        block.writeByte(item.X);
+                        block.writeByte(item.Quality);
+                        block.writeUInt16((ushort)item.State.Length);
+                        foreach (byte bite in item.State)
+                            block.writeByte(bite);
+                    }
+                    
                     //block.writeUInt16(item.id);
                     //block.writeByte(item.amount);
                     //block.writeByte(item.quality);
@@ -133,8 +145,7 @@ namespace ItemRestrictorAdvanced
                     //    block.writeByte(bite);
                 }
             }
-            System.Console.WriteLine($"items count in return load: {itemsCount}");
-            System.Console.WriteLine($"multiplier in return load: {multiplier}");
+
             Functions.WriteBlock(Plugin.Instance.pathTemp + $"\\{CSteamID}\\Heap.dat", block, false);
         }
 

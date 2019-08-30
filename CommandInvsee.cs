@@ -14,7 +14,7 @@ namespace ItemRestrictorAdvanced
         public string Help => "Shows you someone's inventory using UI that you can edit";
         public string Syntax => "/invsee or /ins";
         public List<string> Aliases => new List<string>() { "ins" };
-        public List<string> Permissions => new List<string>() { "rocket.invsee", "rocket.ins" };
+        public List<string> Permissions => new List<string>() { "rocket.invsee", "rocket.invsee.edit" };
         public static CommandGetInventory Instance { get; private set; }
 
         public CommandGetInventory()
@@ -24,10 +24,6 @@ namespace ItemRestrictorAdvanced
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
-            if(caller.HasPermission("rocket.invsee.edit"))
-                System.Console.WriteLine($"{caller.DisplayName} has permission");
-            else
-                System.Console.WriteLine($"{caller.DisplayName} does not have permission");
             try
             {
                 UnturnedPlayer lastCaller = (UnturnedPlayer)caller;
@@ -35,7 +31,7 @@ namespace ItemRestrictorAdvanced
                 for (byte i = 0; i < Provider.clients.Count; i++)
                     EffectManager.sendUIEffectText(22, lastCaller.CSteamID, true, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, true, $"page", "1");
-                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling(Provider.clients.Count / 24.0), lastCaller.Player).OnEffectButtonClick;// feature
+                EffectManager.onEffectButtonClicked += new ManageUI((byte)System.Math.Ceiling(Provider.clients.Count / 24.0), lastCaller.Player, caller).OnEffectButtonClick;// feature
                 EffectManager.sendUIEffectText(22, lastCaller.CSteamID, true, "pagemax", $"{ManageUI.PagesCount}");
                 ManageUI.UICallers.Add(lastCaller.Player);
                 lastCaller.Player.serversideSetPluginModal(true);

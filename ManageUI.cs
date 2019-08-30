@@ -6,6 +6,7 @@ using Logger = Rocket.Core.Logging.Logger;
 using System.IO;
 using Rocket.Unturned.Chat;
 using System.Linq;
+using Rocket.API;
 
 namespace ItemRestrictorAdvanced
 {
@@ -18,6 +19,7 @@ namespace ItemRestrictorAdvanced
         //private static CancellationToken token;
         internal byte PagesCountInv { get; set; }
         private byte playerIndex;
+        private Rocket.API.IRocketPlayer caller;
         private byte itemIndex;
         private byte currentPage;
         private Player targetPlayer;
@@ -38,7 +40,7 @@ namespace ItemRestrictorAdvanced
             //token = cts.Token;
         }
 
-        public ManageUI(byte pagesCount, Player caller)
+        public ManageUI(byte pagesCount, Player caller, Rocket.API.IRocketPlayer callerP)
         {
             currentPage = 1;
             callerPlayer = caller;
@@ -47,6 +49,7 @@ namespace ItemRestrictorAdvanced
             Instances.Add(this);
             overload = EOverload.None;
             selectedId = 0;
+            this.caller = callerP;
         }
 
         internal static void UnLoad()
@@ -190,6 +193,8 @@ namespace ItemRestrictorAdvanced
         {
             if(buttonName.Substring(0, 4) == "item")
             {
+                if (!caller.HasPermission("rocket.invsee.edit"))
+                    return;
                 byte.TryParse(buttonName.Substring(4), out itemIndex);
                 //itemIndex += (byte)((currentPage - 1) * 24); 
                 buttonName = "item";
@@ -200,7 +205,6 @@ namespace ItemRestrictorAdvanced
             switch (buttonName)
             {
                 case "item":
-
                     //show 8102
                     //EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
                     if (UIitemsPages[currentPage - 1].Count >= itemIndex + 1)
@@ -266,7 +270,7 @@ namespace ItemRestrictorAdvanced
                     QuitUI(callerPlayer, 8101);
                     break;
                 default://non button click
-                    return;
+                    break;
             }
         }
 
@@ -571,17 +575,17 @@ namespace ItemRestrictorAdvanced
                         EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName}\r\nID: {UIitemsPages[page - 1][i].ID}\r\nCount: {UIitemsPages[page - 1][i].Count}");
                 EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "page", $"{page}");
                 EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "pagemax", $"{PagesCountInv}");
-                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "playerName", $"{targetName}");
+                EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "playerName", $"{targetName}");
                 if (overload == EOverload.One)
                 {
-                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.askEffectClearByID(8102, callPlayer.channel.owner.playerID.steamID);
                     EffectManager.sendUIEffect(8102, 24, callPlayer.channel.owner.playerID.steamID, true);
                 }
                     
                 else if (overload == EOverload.Two)
                 {
-                    EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
-                    EffectManager.askEffectClearByID(8103, callerPlayer.channel.owner.playerID.steamID);
+                    EffectManager.askEffectClearByID(8102, callPlayer.channel.owner.playerID.steamID);
+                    EffectManager.askEffectClearByID(8103, callPlayer.channel.owner.playerID.steamID);
                     EffectManager.sendUIEffect(8102, 24, callPlayer.channel.owner.playerID.steamID, true);
                     EffectManager.sendUIEffect(8103, 27, callPlayer.channel.owner.playerID.steamID, true);
                 }

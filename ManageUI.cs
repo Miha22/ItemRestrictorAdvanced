@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using SDG.Unturned;
 using Rocket.Unturned.Player;
-using System.Globalization;
 using Logger = Rocket.Core.Logging.Logger;
-using System.Threading;
 using System.IO;
 using Rocket.Unturned.Chat;
 using System.Linq;
@@ -16,13 +14,14 @@ namespace ItemRestrictorAdvanced
         internal static List<ManageUI> Instances;
         internal static List<Player> UICallers;
         internal static byte PagesCount { get; set; }
-        private static CancellationTokenSource cts;
-        private static CancellationToken token;
+        //private static CancellationTokenSource cts;
+        //private static CancellationToken token;
         internal byte PagesCountInv { get; set; }
         private byte playerIndex;
         private byte itemIndex;
         private byte currentPage;
         private Player targetPlayer;
+        private string targetName;
         private string playerSteamID;
         private readonly Player callerPlayer;
         private List<List<MyItem>> UIitemsPages;
@@ -35,8 +34,8 @@ namespace ItemRestrictorAdvanced
         {
             Instances = new List<ManageUI>();
             UICallers = new List<Player>();
-            cts = new CancellationTokenSource();
-            token = cts.Token;
+            //cts = new CancellationTokenSource();
+            //token = cts.Token;
         }
 
         public ManageUI(byte pagesCount, Player caller)
@@ -52,7 +51,7 @@ namespace ItemRestrictorAdvanced
 
         internal static void UnLoad()
         {
-            cts.Cancel();
+            //cts.Cancel();
             if (ManageUI.Instances != null)
             {
                 foreach (ManageUI manageUI in ManageUI.Instances)
@@ -118,6 +117,7 @@ namespace ItemRestrictorAdvanced
                     {
                         targetPlayer = Provider.clients[playerIndex].player;
                         playerSteamID = targetPlayer.channel.owner.playerID.steamID.ToString();
+                        targetName = targetPlayer.channel.owner.playerID.characterName;
                     }
                     catch (Exception)
                     {
@@ -524,7 +524,7 @@ namespace ItemRestrictorAdvanced
             if (itemAsset == null)
             {
                 EffectManager.sendUIEffect(8103, 27, callerPlayer.channel.owner.playerID.steamID, true);
-                EffectManager.sendUIEffectText(27, steamID, true, "Output", "Failed to find ID, try again");
+                EffectManager.sendUIEffectText(27, steamID, true, "Output", "Failed to find ID");
             }
             else
             {
@@ -544,10 +544,10 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private async void OnInventoryChange(byte page, byte index, ItemJar item)//if player exits this automatically removed
+        private void OnInventoryChange(byte page, byte index, ItemJar item)//if player exits this automatically removed
         {
-            if (token.IsCancellationRequested)
-                return;
+            //if (token.IsCancellationRequested)
+            //    return;
             //EffectManager.askEffectClearByID(8101, this.callerPlayer.channel.owner.playerID.steamID);
             GetTargetItems();
             //await System.Threading.Tasks.Task.Run(()=> ShowItemsUI(this.callerPlayer, currentPage));
@@ -558,10 +558,10 @@ namespace ItemRestrictorAdvanced
         private void ShowItemsUI(Player callPlayer, byte page)//target player idnex in provider.clients
         {
             Console.WriteLine();
-            foreach (var pag in UIitemsPages)
-            {
-                Console.WriteLine($"page count in ShowUI: {pag.Count}");
-            }
+            //foreach (var pag in UIitemsPages)
+            //{
+            //    Console.WriteLine($"page count in ShowUI: {pag.Count}");
+            //}
             Console.WriteLine();
             try
             {
@@ -571,7 +571,8 @@ namespace ItemRestrictorAdvanced
                         EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, $"item{i}", $"{((ItemAsset)Assets.find(EAssetType.ITEM, UIitemsPages[page - 1][i].ID)).itemName}\r\nID: {UIitemsPages[page - 1][i].ID}\r\nCount: {UIitemsPages[page - 1][i].Count}");
                 EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "page", $"{page}");
                 EffectManager.sendUIEffectText(23, callPlayer.channel.owner.playerID.steamID, true, "pagemax", $"{PagesCountInv}");
-                if(overload == EOverload.One)
+                EffectManager.sendUIEffectText(26, callPlayer.channel.owner.playerID.steamID, false, "playerName", $"{targetName}");
+                if (overload == EOverload.One)
                 {
                     EffectManager.askEffectClearByID(8102, callerPlayer.channel.owner.playerID.steamID);
                     EffectManager.sendUIEffect(8102, 24, callPlayer.channel.owner.playerID.steamID, true);

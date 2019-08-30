@@ -59,6 +59,28 @@ namespace ItemRestrictorAdvanced
             //Size_x = itemAsset.size_x;
             //Size_y = itemAsset.size_y;
         }
+        public MyItem(ushort id, byte amount, byte quality, byte[] state, ushort count)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
+        {
+            Count = count;
+            ID = id;
+            this.x = amount;
+            Quality = quality;
+            //State = new byte[state.Length];
+            //for (byte i = 0; i < state.Length; i++)
+            //{
+            //    State[i] = state[i];
+            //}
+            State = state ?? (new byte[0]);
+            //Rot = rot;
+            //X = x;
+            //Y = y;
+            //Page = page;
+            //Width = width;
+            //Height = height;
+            //ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, id);
+            //Size_x = itemAsset.size_x;
+            //Size_y = itemAsset.size_y;
+        }
         public MyItem(ushort id, byte amount, byte quality, byte rot, byte sizeX, byte sizeY, byte[] state)/*, byte[] state), byte rot, byte x, byte y, byte index, byte width, byte height)*/
         {
             Count = 1;

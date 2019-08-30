@@ -277,20 +277,20 @@ namespace ItemRestrictorAdvanced
                 targetPlayer.inventory.onInventoryAdded -= OnInventoryChange;
                 targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
             }
-            List<ItemsPair> PageIndexPair = new List<ItemsPair>();
-            ushort counter = 0;
-            //Console.WriteLine($"iteratuin started");
-            foreach (Items page in inventory.items)
-            {
-                if (page == null)
-                    continue;
-                foreach (ItemJar item in page.items)
-                {
-                    if (item.item.id == id)
-                        counter++;
-                        //PageIndexPair.Add(new ItemsPair() { page = page, index = page.getIndex(item.x, item.y)});
-                }
-            }
+            //List<ItemsPair> PageIndexPair = new List<ItemsPair>();
+            //ushort counter = 0;
+            ////Console.WriteLine($"iteratuin started");
+            //foreach (Items page in inventory.items)
+            //{
+            //    if (page == null)
+            //        continue;
+            //    foreach (ItemJar item in page.items)
+            //    {
+            //        if (item.item.id == id)
+            //            counter++;
+            //            //PageIndexPair.Add(new ItemsPair() { page = page, index = page.getIndex(item.x, item.y)});
+            //    }
+            //}
             //Console.WriteLine($"PageIndexPair.Count: {PageIndexPair.Count}");
             //foreach (var pair in PageIndexPair)
             //    pair.page.removeItem(pair.index);
@@ -314,11 +314,11 @@ namespace ItemRestrictorAdvanced
 
             if (targetPlayer != null)
             {
-                targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
-                targetPlayer.inventory.onInventoryRemoved += OnInventoryChange;
                 GetTargetItems();
                 EffectManager.askEffectClearByID(8101, callerPlayer.channel.owner.playerID.steamID);
                 ShowItemsUI(player, currentPage);
+                targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
+                targetPlayer.inventory.onInventoryRemoved += OnInventoryChange;
             }
         }
 
@@ -330,26 +330,24 @@ namespace ItemRestrictorAdvanced
                 targetPlayer.inventory.onInventoryRemoved -= OnInventoryChange;
             }
             ushort itemsRemoved = 0;
-            List<ItemsPair> PageIndexPair = new List<ItemsPair>();
-            foreach (Items page in inventory.items)
+            for (ushort i = 0; i < (ushort)inventory.items.Length && itemsRemoved < times; i++)
             {
-                if (itemsRemoved == times)
-                    break;
-                if (page == null)
+                if (inventory.items[i] == null)
                     continue;
-                foreach (ItemJar item in page.items)
+                if (inventory.items[i].items.Count == 0)
+                    continue;
+                ushort len2 = (ushort)inventory.items[i].items.Count;
+                for (ushort j = 0; j < len2 && itemsRemoved < times; j++)
                 {
-                    if (itemsRemoved == times)
-                        break;
-                    if(item.item.id == id)
+                    if (inventory.items[i].items[j].item.id == id)
                     {
-                        PageIndexPair.Add(new ItemsPair() { page = page, index = page.getIndex(item.x, item.y) });
+                        inventory.items[i].removeItem(inventory.items[i].getIndex(inventory.items[i].items[j].x, inventory.items[i].items[j].y));
+                        len2--;
+                        j--;
                         itemsRemoved++;
                     }
                 }
             }
-            foreach (var pair in PageIndexPair)
-                pair.page.removeItem(pair.index);
             if (targetPlayer != null)
             {
                 targetPlayer.inventory.onInventoryAdded += OnInventoryChange;
@@ -422,8 +420,6 @@ namespace ItemRestrictorAdvanced
 
                 return;
             }
-            if (selectedId == 0)
-                return;
             switch (buttonName)
             {
                 case "ButtonRemove":
@@ -554,12 +550,19 @@ namespace ItemRestrictorAdvanced
                 return;
             //EffectManager.askEffectClearByID(8101, this.callerPlayer.channel.owner.playerID.steamID);
             GetTargetItems();
-            await System.Threading.Tasks.Task.Run(()=> ShowItemsUI(this.callerPlayer, currentPage));
+            //await System.Threading.Tasks.Task.Run(()=> ShowItemsUI(this.callerPlayer, currentPage));
+            ShowItemsUI(this.callerPlayer, currentPage);
             //ShowItemsUI(this.callerPlayer, currentPage);
         }
 
         private void ShowItemsUI(Player callPlayer, byte page)//target player idnex in provider.clients
         {
+            Console.WriteLine();
+            foreach (var pag in UIitemsPages)
+            {
+                Console.WriteLine($"page count in ShowUI: {pag.Count}");
+            }
+            Console.WriteLine();
             try
             {
                 EffectManager.sendUIEffect(8101, 23, callPlayer.channel.owner.playerID.steamID, true);
@@ -600,10 +603,11 @@ namespace ItemRestrictorAdvanced
             {
                 pages = targetPlayer.inventory.items;// array (reference type in stack => by value)
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // load to Inventory.dat and maybe to virtual inventory
                 Console.WriteLine("exception in target items");
+                Console.WriteLine(e);
                 QuitUI(callerPlayer, 8101);
                 return;
             }
@@ -625,6 +629,7 @@ namespace ItemRestrictorAdvanced
 
             if (items.Count == 0)
             {
+                Console.WriteLine("items.count in get gettarget is 0");
                 PagesCountInv = 1;
                 UIitemsPages.Add(items);
                 return;
@@ -634,8 +639,8 @@ namespace ItemRestrictorAdvanced
             for (byte i = 0; i < (byte)Math.Ceiling(items.Count / 24.0); i++)
             {
                 List<MyItem> myPage = new List<MyItem>();
-                for (ushort j = 0; (j < 24) && (counter < (ushort)items.Count); j++, counter++)
-                    myPage.Add(items[j + (24 * i)]);
+                for (ushort j = 0; j < 24 && counter < (ushort)items.Count; j++, counter++)
+                    myPage.Add(new MyItem(items[counter].ID, items[counter].X, items[counter].Quality, items[counter].State, items[counter].Count));
                 UIitemsPages.Add(myPage);
             }
             PagesCountInv = (byte)UIitemsPages.Count;

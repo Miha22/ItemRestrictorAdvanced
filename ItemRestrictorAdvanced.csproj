@@ -45,6 +45,7 @@
     <Compile Include="CommandV.cs" />
     <Compile Include="ECharName.cs" />
     <Compile Include="EFailure.cs" />
+    <Compile Include="EOverload.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="EIgnore.cs" />

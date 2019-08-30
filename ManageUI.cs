@@ -534,6 +534,7 @@ namespace ItemRestrictorAdvanced
             {
                 EffectManager.sendUIEffect(8103, 27, callerPlayer.channel.owner.playerID.steamID, true);
                 EffectManager.sendUIEffectText(27, steamID, true, "Output", $"{itemAsset.id}");
+                EffectManager.sendUIEffectText(27, steamID, true, "OutputName", $"{itemAsset.itemName}");
             }
         }
 

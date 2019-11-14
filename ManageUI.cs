@@ -95,9 +95,10 @@ namespace ItemRestrictorAdvanced
 
         private void SetPlayersList(byte CurrentPage, Steamworks.CSteamID CallerSteamID)
         {
+            EffectManager.sendUIEffect(8100, 22, true);
             byte multiplier = (byte)((CurrentPage - 1) * 24);
             for (byte i = multiplier; (i < (24 + multiplier)) && (i < (byte)Provider.clients.Count); i++)
-                EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
+                EffectManager.sendUIEffectText(22, CallerSteamID, true, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
         }
 
         public void OnEffectButtonClick(Player callerPlayer, string buttonName)
@@ -114,7 +115,7 @@ namespace ItemRestrictorAdvanced
                 case "text":
                     if (Provider.clients.Count < ((playerIndex + 1) * PagesCount))
                         return;
-                    playerIndex = (byte)((currentPage - 1) * 24);
+                    playerIndex += (byte)((currentPage - 1) * 24);
                     currentPage = 1;
                     try
                     {
@@ -146,6 +147,7 @@ namespace ItemRestrictorAdvanced
                     break;
 
                 case "ButtonNext":
+                    EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
                     if (currentPage == PagesCount)
                     {
                         EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, true, "page", $"{PagesCount}");
@@ -163,6 +165,7 @@ namespace ItemRestrictorAdvanced
                     }
                     break;
                 case "ButtonPrev":
+                    EffectManager.askEffectClearByID(8100, callerPlayer.channel.owner.playerID.steamID);
                     if (currentPage == 1)
                     {
                         EffectManager.sendUIEffectText(22, callerPlayer.channel.owner.playerID.steamID, true, "page", $"1");

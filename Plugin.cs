@@ -18,7 +18,7 @@ namespace ItemRestrictorAdvanced
     {
         internal static Plugin Instance;
         internal CancellationTokenSource cts;
-        internal CancellationToken token;
+        internal CancellationToken _token;
         string path;
         string pathPages;
         internal string pathTemp;
@@ -32,7 +32,7 @@ namespace ItemRestrictorAdvanced
                 Provider.onServerShutdown += OnServerShutdown;
 
                 cts = new CancellationTokenSource();
-                token = cts.Token;
+                _token = cts.Token;
 
                 path = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Inventories\{SDG.Unturned.Provider.map}";
                 pathPages = $@"Plugins\{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}\Data\{SDG.Unturned.Provider.map}";
@@ -57,7 +57,7 @@ namespace ItemRestrictorAdvanced
                     directory.Attributes &= ~FileAttributes.ReadOnly;
 
                 LoadInventoryTo(path, pathPages);
-                WatcherAsync(token, path, pathPages, pathTemp);
+                WatcherAsync(_token, path, pathPages, pathTemp);
                 Logger.Log("ItemRestrictorAdvanced by M22 loaded!", ConsoleColor.Cyan);
             }
             else
@@ -162,7 +162,7 @@ namespace ItemRestrictorAdvanced
             }
         }
 
-        private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr, EIgnore ignore = EIgnore.None)//look up a call of GetPlayerItems for "str" for more info
+        private (List<MyItem>, List<Page>) GetPlayerItems(string steamIdstr)//look up a call of GetPlayerItems for "str" for more info
         {
             List<MyItem> myItems = new List<MyItem>();
             List<Page> pages = new List<Page>();

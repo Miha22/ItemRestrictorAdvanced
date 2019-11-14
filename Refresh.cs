@@ -68,8 +68,10 @@ namespace ItemRestrictorAdvanced
             ReSizeDown(index);
         }
 
-        private void Do(byte pagemax, CancellationToken token)
+        private void Do(byte pagemax, CancellationToken ctoken)
         {
+            if (ctoken.IsCancellationRequested)
+                return;
             try
             {
                 EffectManager.askEffectClearByID(8100, CallerSteamID);
@@ -78,6 +80,7 @@ namespace ItemRestrictorAdvanced
                 for (byte i = multiplier; (i < (24 + multiplier)) && (i < (byte)Provider.clients.Count); i++)
                     EffectManager.sendUIEffectText(22, CallerSteamID, false, $"text{i}", $"{Provider.clients[i].playerID.characterName}");
                 EffectManager.sendUIEffectText(22, CallerSteamID, false, "pagemax", $"{pagemax}");
+                EffectManager.sendUIEffectText(22, CallerSteamID, false, "page", $"{CurrentPage}");
             }
             catch (System.Exception)
             {
